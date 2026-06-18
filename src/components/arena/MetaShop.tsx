@@ -14,8 +14,8 @@ export function MetaShop({ meta, onBuy, onBuyCharm, onBack }: Props) {
   return (
     <div className="screen shop-screen">
       <div className="shop-content">
-        <h1>META SHOP</h1>
-        <p className="shop-shards">Shards: {meta.shards}</p>
+        <h1>REMNANT TREE</h1>
+        <p className="shop-shards">Remnants: {meta.shards}</p>
         <div className="shop-grid">
           {SHOP_ITEMS.map((item) => {
             const level = meta.upgrades[item.id] as number;
@@ -32,7 +32,7 @@ export function MetaShop({ meta, onBuy, onBuyCharm, onBack }: Props) {
                   disabled={maxed || meta.shards < cost}
                   onClick={() => onBuy(item.id, cost)}
                 >
-                  {maxed ? 'MAXED' : `${cost} shards`}
+                  {maxed ? 'MAXED' : `${cost} remnants`}
                 </button>
               </div>
             );

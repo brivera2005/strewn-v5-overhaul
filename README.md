@@ -1,141 +1,58 @@
-# Burden Surge
+# STREWN
 
-**The world shattered. You hold the shared pain. Route it, fuse it, or overflow and break.**
+**STREWN** is a top-down action roguelite about **pain mitigation and sharing burden** across a shattered world. You are a Painweaver: route suffering through sink nodes, vent overload, and meld relics at shrines.
 
-A Steam-quality arena roguelite built on one radical idea: **suffering is a shared resource pool with depth, color, and discovery.** Enemies bleed typed pain into you. Overflow hurts. Mastery means routing weight to minions, structures, and fused charms — while the arena grows beneath your feet.
+## Pitch
 
-Double-click to play. No terminal, no browser tab.
-
----
-
-## Play
-
-**Double-click `release\Strewn.exe`** (or desktop **Strewn.lnk**) after building.
-
-```bash
-npm run electron:dev    # dev with hot reload
-npm run electron:build  # portable exe → release/Strewn.exe
-```
-
----
-
-## Story
-
-The world shattered into fragments. Every wound echoes across the ruins — **grief, rage, dread, and hollow silence**. You are a **Surge-bearer**: the only one who can hold the shared pain long enough to fuse it into power. Route the weight. Meld the suffering. Deploy minions as sinks. Build relays mid-run. Or overflow and break.
-
----
-
-## Core Loop
-
-1. **SURGE NOW** — interactive tutorial guides your first run (skippable).
-2. **Enemies emit typed suffering** into your layered Burden Pool.
-3. **Overflow damages you** when capacity is exceeded — weaponize it with charms.
-4. **Level up** and pick Burden Charms (14 base types).
-5. **Meld Altar** appears periodically — fuse charms into **22 discoverable hybrids** (Balatro-style "NEW RECIPE!" popup).
-6. **Expand the arena** each wave; discover shrines for rewards.
-7. **Build structures** mid-run (relays, sink towers, fuse shrines).
-8. **Earn Meta Shards**, unlock upgrades, read the **Codex** (C key).
-
----
-
-## Unique Systems
-
-### Burden Ecology
-Pain has **four types** that layer in your meter:
-| Type | Color | Source |
-|------|-------|--------|
-| Grief | Blue | Wretches |
-| Rage | Red | Howlers |
-| Dread | Purple | Anchors |
-| Hollow | Gray | Boss Grief Anchors |
-
-**Synergies:** Grief + Rage → **Wrath Storm** nova. Dread + Hollow → **Miasma** enemy slow. Pain layers show in the HUD burden bar.
-
-### World Chunks
-Arena **expands each wave** — procedural Kenney dungeon tiles replace walls. Every 4 waves, a **discoverable shrine** appears (capacity, heal, or shards).
-
-### Crafting Tree (22 Melds)
-Eight original + fourteen new fusions. Silhouettes in Codex until discovered. Examples:
-| Recipe | Result |
-|--------|--------|
-| Pulse + Lash | Wrath Storm |
-| Veil + Null | Void Maw |
-| Prism + Shard | Prism Storm |
-| Ember + Anchor | Burning Anchor |
-
-Full list in-game via **Codex (C)**.
-
-### Burden Architecture
-| Key | Structure | Effect |
-|-----|-----------|--------|
-| B | Toggle build mode | — |
-| TAB | Cycle structure | Pain Relay / Sink Tower / Fuse Shrine |
-| F | Place | Costs burden; persists for the run |
-
-### Meta Layer
-Shards unlock: max HP, burden cap, speed, shard bonus, minion slots, starting charm, biomes.
-
----
+The world fractured. Every wound echoes as colored pain: grief, rage, dread, and hollow ache. Enemies bleed suffering into you. Your job is not to tank it alone but to **route** it: lash foes, collect pain orbs, place typed sink nodes, and stand between clusters as the living router. Vent when the Burden Bar threatens overflow. Survive 20-minute runs, beat bosses every 5 waves, and spend **Remnants** on permanent upgrades.
 
 ## Controls
 
 | Input | Action |
 |-------|--------|
-| WASD / Arrows | Move (acceleration + friction) |
-| SPACE | Deploy minion (burden sink) |
-| 1 / 2 | Slot charm for meld |
-| E | Fuse at Meld Altar |
-| B / TAB / F | Build mode / cycle / place structure |
-| C | Burden Codex |
+| WASD | Move |
+| Mouse | Aim |
+| Left Click | Pain Lash (marks enemies for routing) |
+| Right Click | Vent Burden (shockwave, sheds weight) |
+| Q | Place Sink Node at cursor |
+| E | Meld at shrine (when active) |
+| 1 / 2 | Slot relics for melding |
+| C | Codex |
 | ESC | Pause |
 
----
+## Pain Network
 
-## Tutorial Flow
+1. **Lash** enemies with left click. Hits mark them and deal damage.
+2. Press **Q** to place a **Sink Node** (max 2 early, more via upgrades). Each sink has a pain type affinity.
+3. Marked enemies bleed pain along visible bezier paths: **enemy → you (router) → sink**.
+4. **Match** sink color to pain type for efficient routing. Mismatched routing costs **2x burden**.
+5. Walk between enemy clusters and sinks to tighten routes.
+6. At **wave 5+**, **Strain Echo** unlocks: faint lash afterimages (subtle, not orbiting minions).
 
-1. **The Weight Returns** — movement + burden concept
-2. **Pain Has Color** — four pain types (at 50% burden)
-3. **Death Releases Pain** — first kill burst
-4. **Share the Load** — minion deploy
-5. **Meld Altar** — fusion discovery
+## Run Loop
 
-Skip anytime. Codex remains available forever.
+- Main menu → skippable 5-step tutorial on first launch
+- Waves escalate over ~20 minutes; boss every 5 waves
+- Level up: choose 1 of 3 relic upgrades
+- Death → earn Remnants → permanent unlock tree
+- Meld hybrid relics at shrines; discoveries saved in Codex
 
----
+## Development
 
-## Visual & Audio
-
-- **Kenney Tiny Dungeon** tilemap + character sprite sheets (CC0)
-- Animated walk cycles, telegraphed enemy spawns, layered pain meter
-- Screen shake, hit-stop, damage numbers, particle bursts
-- Glowing overflow warning pulse
-- Dark moody palette + neon pain colors
-- CRT scanlines (optional, off by default)
-- Procedural chiptune with combat/menu/boss crossfade
-
----
-
-## Assets Bundled
-
-```
-public/assets/
-  tiles/tilemap_packed.png          # Kenney Tiny Dungeon tilemap
-  kenney/tinydungeon/Tiles/         # 132 dungeon tiles
-  sprites/player.png                # Adventurer sheet
-  sprites/enemy_*.png               # Ghost, bat, spike, redeye sheets
-  sprites/minion.png                # Slime sheet
-  sprites/xp_gem.png                # Gold coin sheet
-  sprites/shard.png                 # Gem pickup
+```bash
+npm install
+npm run dev          # Vite dev server
+npm run build        # Production build
+npm run electron:dev # Desktop dev
+npm run electron:build  # Portable Strewn.exe
 ```
 
-Attribution: [Kenney.nl](https://kenney.nl) (CC0 1.0)
+## Assets
 
----
+- **Sprites**: [Kenney Tiny Dungeon](https://kenney.nl/assets/tiny-dungeon) (CC0), bundled under `public/assets/`
+- **Music**: CC0 chiptune loops from [OpenGameArt](https://opengameart.org) (`menu.ogg`, `combat.ogg`, `boss.ogg`)
+- **Fonts**: Press Start 2P, Pixelify Sans (Google Fonts)
 
-## Tech
+## License
 
-React + TypeScript + Vite + Electron. Canvas game loop in `src/components/arena/BurdenArena.tsx`. Game logic in `src/game/burden/` + `src/game/arena/`. Web Audio chiptune (`MusicEngine.ts`).
-
----
-
-*"The weight is yours. Pass it on."*
+Game code: project license. Third-party assets retain their respective licenses (Kenney CC0, OpenGameArt CC0 where noted).

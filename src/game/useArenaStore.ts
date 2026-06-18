@@ -1,23 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   applyLevelUpChoice,
-  collectRunShards,
+  collectRunRemnants,
   createArenaState,
-  cycleBuildMode,
-  cycleBuildType,
-  deployMinion,
   dismissTutorial,
   getRunStats,
-  placeStructure,
   setMeldSlot,
   skipAllTutorial,
   tryMeld,
+  tryPlaceSink,
   updateArena,
 } from './arena/engine';
 import { discoverMeld, loadMeta, saveMeta } from './arena/save';
 import type { CharmId, MetaSave, RunStats, Screen } from './arena/types';
 import { musicEngine } from './MusicEngine';
-import { STRUCTURE_CYCLE, STRUCTURE_DEFS } from './burden/structures';
+import { ARENA_W, ARENA_H } from './arena/constants';
 
 export function useArenaStore() {
   const [meta, setMeta] = useState<MetaSave>(() => loadMeta());
@@ -28,6 +25,7 @@ export function useArenaStore() {
 
   const arenaRef = useRef(createArenaState(meta));
   const keysRef = useRef(new Set<string>());
+  const canvasScaleRef = useRef({ scale: 1, offsetX: 0, offsetY: 0 });
   const rafRef = useRef(0);
   const lastTimeRef = useRef(0);
   const metaRef = useRef(meta);
@@ -45,7 +43,7 @@ export function useArenaStore() {
     setLastMeld(null);
     setScreen('playing');
     musicEngine.resume();
-    musicEngine.crossfadeTo('gameplay_ambient');
+    musicEngine.crossfadeTo('combat');
   }, []);
 
   const endRun = useCallback((won: boolean) => {
@@ -53,19 +51,20 @@ export function useArenaStore() {
     if (!metaRef.current.tutorialComplete && state.tutorialSeen.size >= 3) {
       persistMeta({ ...metaRef.current, tutorialComplete: true });
     }
-    const stats = getRunStats(state, metaRef.current.upgrades.shardBonus);
-    const shards = collectRunShards(state, metaRef.current);
+    const stats = getRunStats(state, metaRef.current.upgrades.remnantBonus);
+    const remnants = collectRunRemnants(state, metaRef.current);
     const nextMeta: MetaSave = {
       ...metaRef.current,
-      shards: metaRef.current.shards + shards,
+      shards: metaRef.current.shards + remnants,
       totalRuns: metaRef.current.totalRuns + 1,
       bestTime: Math.max(metaRef.current.bestTime, stats.time),
       bestKills: Math.max(metaRef.current.bestKills, stats.kills),
     };
     persistMeta(nextMeta);
-    setRunStats({ ...stats, shardsEarned: shards });
+    setRunStats({ ...stats, remnantsEarned: remnants });
     setScreen(won ? 'victory' : 'gameover');
     musicEngine.playSting(won ? 'success_sting' : 'death_sting');
+    musicEngine.crossfadeTo('menu');
   }, [persistMeta]);
 
   const tick = useCallback((now: number) => {
@@ -75,6 +74,16 @@ export function useArenaStore() {
     lastTimeRef.current = now;
 
     updateArena(state, dt, keysRef.current, metaRef.current);
+
+    const burdenRatio = state.burden.current / state.burden.max;
+    if (state.ventSfx) {
+      state.ventSfx = false;
+      musicEngine.playSfx('vent');
+    }
+    musicEngine.updateHeartbeat(burdenRatio, dt);
+    if (state.bossActive && musicEngine) {
+      /* boss track handled on wave start via effect below */
+    }
 
     if (state.pendingLevelUp) {
       setScreen('levelup');
@@ -102,6 +111,14 @@ export function useArenaStore() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [screen, tick]);
 
+  const screenToWorld = useCallback((clientX: number, clientY: number, rect: DOMRect) => {
+    const { scale, offsetX, offsetY } = canvasScaleRef.current;
+    return {
+      x: (clientX - rect.left - offsetX) / scale,
+      y: (clientY - rect.top - offsetY) / scale,
+    };
+  }, []);
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -111,29 +128,16 @@ export function useArenaStore() {
       if (screen === 'playing') {
         if (k === 'escape') {
           setScreen('paused');
-          musicEngine.crossfadeTo('title_theme', 0.5);
+          musicEngine.crossfadeTo('menu', 0.5);
         }
         if (k === 'c') {
           setScreen('codex');
           musicEngine.playSfx('ui_click');
         }
-        if (k === ' ') {
-          e.preventDefault();
-          if (deployMinion(state, metaRef.current)) musicEngine.playSfx('assign');
+        if (k === 'q') {
+          if (tryPlaceSink(state)) musicEngine.playSfx('sink');
         }
-        if (k === 'b') {
-          cycleBuildMode(state);
-          musicEngine.playSfx('ui_click');
-        }
-        if (k === 'f' && state.buildMode) {
-          if (placeStructure(state, metaRef.current)) musicEngine.playSfx('research_unlock');
-        }
-        if (k === 'tab' && state.buildMode) {
-          e.preventDefault();
-          cycleBuildType(state);
-          musicEngine.playSfx('tick');
-        }
-        if (k === 'e' && state.altarActive) {
+        if (k === 'e' && (state.shrineActive || state.nearShrine)) {
           const result = tryMeld(state);
           if (result) {
             const next = discoverMeld(metaRef.current, result);
@@ -153,6 +157,7 @@ export function useArenaStore() {
 
       if (screen === 'codex' && k === 'c') {
         setScreen('playing');
+        musicEngine.crossfadeTo('combat');
       }
     };
     const up = (e: KeyboardEvent) => keysRef.current.delete(e.key.toLowerCase());
@@ -164,10 +169,32 @@ export function useArenaStore() {
     };
   }, [screen, persistMeta]);
 
+  const setCanvasTransform = useCallback((scale: number, offsetX: number, offsetY: number) => {
+    canvasScaleRef.current = { scale, offsetX, offsetY };
+  }, []);
+
+  const handleMouseMove = useCallback((clientX: number, clientY: number, rect: DOMRect) => {
+    const { x, y } = screenToWorld(clientX, clientY, rect);
+    arenaRef.current.mouseX = Math.max(0, Math.min(ARENA_W, x));
+    arenaRef.current.mouseY = Math.max(0, Math.min(ARENA_H, y));
+  }, [screenToWorld]);
+
+  const handleMouseDown = useCallback((button: number, clientX: number, clientY: number, rect: DOMRect) => {
+    handleMouseMove(clientX, clientY, rect);
+    if (button === 0) arenaRef.current.mouseDown = true;
+    if (button === 2) arenaRef.current.mouseRightDown = true;
+  }, [handleMouseMove]);
+
+  const handleMouseUp = useCallback((button: number) => {
+    if (button === 0) arenaRef.current.mouseDown = false;
+    if (button === 2) arenaRef.current.mouseRightDown = false;
+  }, []);
+
   const pickLevelUp = useCallback((id: CharmId) => {
     applyLevelUpChoice(arenaRef.current, id);
     setScreen('playing');
     musicEngine.playSfx('relief');
+    musicEngine.crossfadeTo('combat');
   }, []);
 
   const dismissTutorialStep = useCallback(() => {
@@ -185,25 +212,29 @@ export function useArenaStore() {
 
   const openShop = useCallback(() => {
     setScreen('shop');
-    musicEngine.crossfadeTo('zone_streets');
+    musicEngine.crossfadeTo('menu');
   }, []);
 
   const openSettings = useCallback(() => {
     setScreen('settings');
-    musicEngine.crossfadeTo('title_theme');
+    musicEngine.crossfadeTo('menu');
   }, []);
 
   const backToMenu = useCallback(() => {
     setScreen('menu');
-    musicEngine.crossfadeTo('title_theme');
+    musicEngine.crossfadeTo('menu');
   }, []);
 
   const resume = useCallback(() => {
     setScreen('playing');
-    musicEngine.crossfadeTo('gameplay_ambient');
+    const boss = arenaRef.current.bossActive;
+    musicEngine.crossfadeTo(boss ? 'boss' : 'combat');
   }, []);
 
-  const closeCodex = useCallback(() => setScreen('playing'), []);
+  const closeCodex = useCallback(() => {
+    setScreen('playing');
+    musicEngine.crossfadeTo('combat');
+  }, []);
 
   const buyUpgrade = useCallback((id: keyof MetaSave['upgrades'], cost: number) => {
     if (meta.shards < cost) return;
@@ -224,7 +255,7 @@ export function useArenaStore() {
       upgrades: { ...meta.upgrades, startCharm: charmId },
     };
     persistMeta(next);
-    musicEngine.playSfx('research_unlock');
+    musicEngine.playSfx('level_up');
   }, [meta, persistMeta]);
 
   const setMusicVolume = useCallback((v: number) => {
@@ -248,11 +279,13 @@ export function useArenaStore() {
   useEffect(() => {
     musicEngine.setMusicVolume(meta.settings.musicVolume);
     musicEngine.setMuted(meta.settings.muted);
-    if (screen === 'menu') musicEngine.crossfadeTo('title_theme');
+    if (screen === 'menu') musicEngine.crossfadeTo('menu');
   }, []);
 
-  const buildType = STRUCTURE_CYCLE[arenaRef.current.buildIndex % STRUCTURE_CYCLE.length];
-  const buildDef = STRUCTURE_DEFS[buildType];
+  useEffect(() => {
+    if (screen !== 'playing') return;
+    if (arenaRef.current.bossActive) musicEngine.crossfadeTo('boss');
+  }, [hudTick, screen]);
 
   return {
     meta,
@@ -278,6 +311,9 @@ export function useArenaStore() {
     dismissTutorialStep,
     skipTutorial,
     dismissMeldPopup,
-    buildDef,
+    setCanvasTransform,
+    handleMouseMove,
+    handleMouseDown,
+    handleMouseUp,
   };
 }

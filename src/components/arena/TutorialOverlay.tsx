@@ -1,4 +1,4 @@
-import { getTutorialStep } from '../../game/burden/tutorial';
+import { getTutorialStep } from '../../game/strewn/tutorial';
 
 interface Props {
   stepId: string | null;
@@ -14,7 +14,7 @@ export function TutorialOverlay({ stepId, onNext, onSkipAll }: Props) {
   return (
     <div className="tutorial-overlay">
       <div className="tutorial-card">
-        <p className="tutorial-label">GUIDED SURGE</p>
+        <p className="tutorial-label">PAINWEAVER GUIDE</p>
         <h3 className="tutorial-title">{step.title}</h3>
         <p className="tutorial-body">{step.body}</p>
         <div className="tutorial-actions">

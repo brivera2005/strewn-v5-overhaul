@@ -28,7 +28,7 @@ if not exist "%EXE%" (
 
 set "SHORTCUT=%USERPROFILE%\Desktop\Strewn.lnk"
 
-powershell -NoProfile -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT%'); $s.TargetPath = '%EXE%'; $s.WorkingDirectory = '%~dp0release'; $s.IconLocation = '%~dp0assets\icon.ico'; $s.Description = 'Strewn: Distributed Burden Strategy'; $s.Save()"
+powershell -NoProfile -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT%'); $s.TargetPath = '%EXE%'; $s.WorkingDirectory = '%~dp0release'; $s.IconLocation = '%~dp0assets\icon.ico'; $s.Description = 'STREWN: Pain Routing Roguelite'; $s.Save()"
 
 
 

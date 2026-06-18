@@ -1,15 +1,15 @@
 import type { CharmId, GameSettings, MetaSave, MetaUpgrades } from './types';
 
-const SAVE_KEY = 'burden-surge-save-v6';
+const SAVE_KEY = 'strewn-save-v7';
 
 export const DEFAULT_UPGRADES: MetaUpgrades = {
   maxHp: 0,
   burdenCap: 0,
   moveSpeed: 0,
-  shardBonus: 0,
-  minionSlots: 0,
+  remnantBonus: 0,
+  sinkSlots: 0,
   startCharm: null,
-  biomeUnlock: 0,
+  ventPower: 0,
 };
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -33,16 +33,27 @@ export function createDefaultMeta(): MetaSave {
   };
 }
 
+function migrateUpgrades(raw: Record<string, unknown>): MetaUpgrades {
+  return {
+    maxHp: Number(raw.maxHp ?? 0),
+    burdenCap: Number(raw.burdenCap ?? 0),
+    moveSpeed: Number(raw.moveSpeed ?? 0),
+    remnantBonus: Number(raw.remnantBonus ?? raw.shardBonus ?? 0),
+    sinkSlots: Number(raw.sinkSlots ?? raw.minionSlots ?? 0),
+    startCharm: (raw.startCharm as MetaUpgrades['startCharm']) ?? null,
+    ventPower: Number(raw.ventPower ?? 0),
+  };
+}
+
 export function loadMeta(): MetaSave {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem('burden-surge-save-v6');
     if (!raw) return createDefaultMeta();
-    const data = JSON.parse(raw) as MetaSave;
-    if (data.version !== 6) return createDefaultMeta();
+    const data = JSON.parse(raw) as MetaSave & { upgrades?: Record<string, unknown> };
     return {
       ...createDefaultMeta(),
       ...data,
-      upgrades: { ...DEFAULT_UPGRADES, ...data.upgrades },
+      upgrades: migrateUpgrades(data.upgrades ?? {}),
       settings: { ...DEFAULT_SETTINGS, ...data.settings },
       tutorialComplete: data.tutorialComplete ?? false,
       loreUnlocked: data.loreUnlocked ?? [],
@@ -91,26 +102,33 @@ export const SHOP_ITEMS: ShopItem[] = [
     cost: (l) => 40 + l * 20,
   },
   {
-    id: 'shardBonus',
-    name: 'Shard Magnet',
-    desc: '+15% shard gain per level',
+    id: 'remnantBonus',
+    name: 'Remnant Magnet',
+    desc: '+15% remnant gain per level',
     maxLevel: 4,
     cost: (l) => 50 + l * 35,
   },
   {
-    id: 'minionSlots',
-    name: 'Extra Hands',
-    desc: '+1 minion slot per level',
+    id: 'sinkSlots',
+    name: 'Extra Sinks',
+    desc: '+1 sink node slot per level',
     maxLevel: 3,
     cost: (l) => 60 + l * 40,
+  },
+  {
+    id: 'ventPower',
+    name: 'Deep Vent',
+    desc: '+20% vent shockwave power per level',
+    maxLevel: 4,
+    cost: (l) => 55 + l * 30,
   },
 ];
 
 export const START_CHARMS: { id: CharmId; cost: number }[] = [
-  { id: 'shard', cost: 80 },
+  { id: 'lash', cost: 80 },
   { id: 'anchor', cost: 80 },
   { id: 'ember', cost: 100 },
-  { id: 'conduit', cost: 100 },
+  { id: 'relay', cost: 100 },
 ];
 
 export function discoverMeld(meta: MetaSave, charmId: CharmId): MetaSave {

@@ -1,7 +1,7 @@
 import { musicEngine } from '../../game/MusicEngine';
 
 interface Props {
-  shards: number;
+  remnants: number;
   totalRuns: number;
   bestKills: number;
   onStart: () => void;
@@ -9,20 +9,20 @@ interface Props {
   onSettings: () => void;
 }
 
-export function MainMenu({ shards, totalRuns, bestKills, onStart, onShop, onSettings }: Props) {
+export function MainMenu({ remnants, totalRuns, bestKills, onStart, onShop, onSettings }: Props) {
   return (
     <div className="screen menu-screen">
       <div className="menu-bg" />
       <div className="menu-content">
-        <p className="menu-tag">ROGUELITE BURDEN SURVIVOR</p>
-        <h1 className="menu-title">BURDEN SURGE</h1>
+        <p className="menu-tag">PAIN ROUTING ROGUELITE</p>
+        <h1 className="menu-title">STREWN</h1>
         <p className="menu-story">
-          The world shattered. Every wound echoes across the fragments — grief, rage, dread, and hollow silence.
-          You are a Surge-bearer: the only one who can hold the shared pain long enough to fuse it into power.
-          Route the weight. Meld the suffering. Or overflow and break.
+          The world shattered. Every wound echoes across the fragments: grief, rage, dread, and hollow silence.
+          You are a Painweaver, the Router who shares suffering instead of hoarding it.
+          Lash foes, place sinks, vent the weight. Meld relics at shrines. Or overflow and break.
         </p>
         <div className="menu-stats">
-          <span>Shards {shards}</span>
+          <span>Remnants {remnants}</span>
           <span>Runs {totalRuns}</span>
           <span>Best Kills {bestKills}</span>
         </div>
@@ -35,7 +35,7 @@ export function MainMenu({ shards, totalRuns, bestKills, onStart, onShop, onSett
               onStart();
             }}
           >
-            SURGE NOW
+            WEAVE PAIN
           </button>
           <button
             type="button"
@@ -45,7 +45,7 @@ export function MainMenu({ shards, totalRuns, bestKills, onStart, onShop, onSett
               onShop();
             }}
           >
-            META SHOP
+            REMNANT TREE
           </button>
           <button
             type="button"
@@ -59,7 +59,7 @@ export function MainMenu({ shards, totalRuns, bestKills, onStart, onShop, onSett
           </button>
         </div>
         <div className="menu-controls">
-          <p>WASD · SPACE minion · 1/2 meld · E fuse · B build · C codex · ESC pause</p>
+          <p>WASD move | Mouse aim | LMB Pain Lash | RMB Vent | Q Sink | E Meld | 1/2 slots | C Codex | ESC pause</p>
         </div>
       </div>
     </div>
