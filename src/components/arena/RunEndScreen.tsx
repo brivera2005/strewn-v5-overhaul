@@ -19,8 +19,8 @@ export function RunEndScreen({ won, stats, onRetry, onMenu, onShop }: Props) {
   return (
     <div className="screen end-screen">
       <div className="end-content">
-        <h1 className={won ? 'victory' : 'defeat'}>{won ? 'ANCHOR SHATTERED' : 'BURDEN CRUSHED'}</h1>
-        <p className="end-sub">{won ? 'You survived the grief storm.' : 'The pool overflowed.'}</p>
+        <h1 className={won ? 'victory' : 'defeat'}>{won ? 'PAIN DISSOLVED' : 'OVERFLOW'}</h1>
+        <p className="end-sub">{won ? 'You routed the shattered world\'s weight.' : 'The burden broke you.'}</p>
         <div className="stat-grid">
           <div><span>Time</span><strong>{formatTime(stats.time)}</strong></div>
           <div><span>Kills</span><strong>{stats.kills}</strong></div>
@@ -28,10 +28,10 @@ export function RunEndScreen({ won, stats, onRetry, onMenu, onShop }: Props) {
           <div><span>Levels</span><strong>{stats.levelsGained}</strong></div>
           <div><span>Melds</span><strong>{stats.meldsFound}</strong></div>
           <div><span>Shrines</span><strong>{stats.shrinesFound}</strong></div>
-          <div><span>Built</span><strong>{stats.structuresBuilt}</strong></div>
+          <div><span>Sinks</span><strong>{stats.sinksPlaced}</strong></div>
           <div><span>Pain Routed</span><strong>{stats.painRouted}</strong></div>
           <div><span>Overflows</span><strong>{stats.burdenOverflows}</strong></div>
-          <div className="shard-stat"><span>Shards Earned</span><strong>+{stats.shardsEarned}</strong></div>
+          <div className="shard-stat"><span>Remnants</span><strong>+{stats.remnantsEarned}</strong></div>
         </div>
         <div className="menu-buttons">
           <button
@@ -45,7 +45,7 @@ export function RunEndScreen({ won, stats, onRetry, onMenu, onShop }: Props) {
             ONE MORE RUN
           </button>
           <button type="button" className="btn-secondary" onClick={onShop}>
-            SPEND SHARDS
+            REMNANT TREE
           </button>
           <button type="button" className="btn-ghost" onClick={onMenu}>
             MAIN MENU

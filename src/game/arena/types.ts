@@ -1,4 +1,4 @@
-import type { WorldState } from '../burden/world';
+import type { WorldState } from '../strewn/world';
 
 export type Screen =
   | 'menu'
@@ -79,10 +79,10 @@ export interface MetaUpgrades {
   maxHp: number;
   burdenCap: number;
   moveSpeed: number;
-  shardBonus: number;
-  minionSlots: number;
+  remnantBonus: number;
+  sinkSlots: number;
   startCharm: CharmId | null;
-  biomeUnlock: number;
+  ventPower: number;
 }
 
 export interface MetaSave {
@@ -110,11 +110,11 @@ export interface RunStats {
   wavesCleared: number;
   levelsGained: number;
   meldsFound: number;
-  shardsEarned: number;
+  remnantsEarned: number;
   damageTaken: number;
   burdenOverflows: number;
   shrinesFound: number;
-  structuresBuilt: number;
+  sinksPlaced: number;
   painRouted: number;
 }
 
@@ -137,6 +137,9 @@ export interface Enemy {
   hitFlash: number;
   size: number;
   spawnTelegraph: number;
+  lashed?: boolean;
+  lashIntensity?: number;
+  painBuffered?: number;
 }
 
 export interface Projectile {
@@ -155,21 +158,36 @@ export interface Pickup {
   id: number;
   x: number;
   y: number;
-  kind: 'xp' | 'charm' | 'shard';
+  kind: 'xp' | 'pain_orb' | 'remnant';
   value: number;
-  charmId?: CharmId;
+  painType?: PainType;
   magnetized: boolean;
 }
 
-export interface Minion {
+export interface SinkNode {
   id: number;
   x: number;
   y: number;
+  painType: PainType;
+  stored: number;
+  maxStored: number;
+}
+
+export interface PainRoute {
+  enemyId: number;
+  sinkId: number;
+  painType: PainType;
+  flow: number;
+  cx: number;
+  cy: number;
+}
+
+export interface StrainEcho {
+  id: number;
+  x: number;
+  y: number;
+  life: number;
   angle: number;
-  hp: number;
-  maxHp: number;
-  burdenHeld: number;
-  capacity: number;
 }
 
 export interface Particle {
@@ -222,6 +240,7 @@ export interface ArenaState {
     xpToNext: number;
     invuln: number;
     facing: number;
+    aimAngle: number;
   };
   burden: {
     current: number;
@@ -230,13 +249,13 @@ export interface ArenaState {
     overflowPulse: number;
   };
   world: WorldState;
-  structures: Structure[];
-  buildMode: boolean;
-  buildIndex: number;
+  sinks: SinkNode[];
+  maxSinks: number;
+  painRoutes: PainRoute[];
+  strainEchoes: StrainEcho[];
   enemies: Enemy[];
   projectiles: Projectile[];
   pickups: Pickup[];
-  minions: Minion[];
   particles: Particle[];
   floatingTexts: FloatingText[];
   charms: ActiveCharm[];
@@ -246,8 +265,17 @@ export interface ArenaState {
   waveEnemiesLeft: number;
   time: number;
   kills: number;
-  altarActive: boolean;
-  altarTimer: number;
+  shrineActive: boolean;
+  shrineTimer: number;
+  nearShrine: boolean;
+  lashCooldown: number;
+  ventCooldown: number;
+  ventPulse: number;
+  ventSfx?: boolean;
+  mouseX: number;
+  mouseY: number;
+  mouseDown: boolean;
+  mouseRightDown: boolean;
   bossActive: boolean;
   shake: number;
   hitStop: number;
@@ -256,7 +284,7 @@ export interface ArenaState {
   burdenOverflows: number;
   meldsFound: number;
   shrinesFound: number;
-  structuresBuilt: number;
+  sinksPlaced: number;
   painRouted: number;
   pendingLevelUp: boolean;
   levelUpChoices: CharmId[];

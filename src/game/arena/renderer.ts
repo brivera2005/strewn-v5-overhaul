@@ -6,9 +6,10 @@ import {
 } from './constants';
 import { CHARM_DEFS } from './charms';
 import type { ArenaState, Enemy } from './types';
-import { PAIN_COLORS } from '../burden/ecology';
-import { TILE_PX, type WorldState } from '../burden/world';
-import { getAtlas, drawTile, drawSheetFrame } from '../burden/assets';
+import { PAIN_COLORS } from '../strewn/ecology';
+import { TILE_PX, type WorldState } from '../strewn/world';
+import { getAtlas, drawTile, drawSheetFrame } from '../strewn/assets';
+import { drawPainRoute, painRouteColor } from '../strewn/painNetwork';
 
 function burdenColor(ratio: number): string {
   if (ratio < 0.5) return COLORS.burdenLow;
@@ -71,8 +72,8 @@ function renderEnemy(ctx: CanvasRenderingContext2D, enemy: Enemy, time: number):
       boss: atlas.enemyBoss,
     };
     const sheet = sheets[enemy.type];
-    const fw = Math.floor(sheet.width / 4) || 32;
-    const fh = sheet.height || 32;
+    const fw = Math.floor(sheet.width / 4) || 16;
+    const fh = sheet.height || 16;
     const scale = (enemy.size * 2.2) / fh;
     if (flash) ctx.filter = 'brightness(2)';
     drawSheetFrame(ctx, sheet, frame, fw, fh, enemy.x - fw * scale / 2, enemy.y - fh * scale / 2, scale);
@@ -82,6 +83,16 @@ function renderEnemy(ctx: CanvasRenderingContext2D, enemy: Enemy, time: number):
     ctx.beginPath();
     ctx.arc(enemy.x, enemy.y, enemy.size, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  if (enemy.lashed) {
+    ctx.strokeStyle = PAIN_COLORS[enemy.painType];
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.6 + Math.sin(time * 8) * 0.3;
+    ctx.beginPath();
+    ctx.arc(enemy.x, enemy.y, enemy.size + 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   const hpRatio = enemy.hp / enemy.maxHp;
@@ -99,6 +110,7 @@ export function renderArena(
   offsetY: number,
   crtScanlines = false,
 ): void {
+  const burdenRatio = state.burden.current / state.burden.max;
   const shakeX = state.shake > 0 ? (Math.random() - 0.5) * state.shake * 14 : 0;
   const shakeY = state.shake > 0 ? (Math.random() - 0.5) * state.shake * 14 : 0;
 
@@ -107,6 +119,11 @@ export function renderArena(
 
   ctx.fillStyle = COLORS.bg;
   ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+
+  if (burdenRatio > 0.65) {
+    ctx.fillStyle = `rgba(255, 34, 68, ${(burdenRatio - 0.65) * 0.35})`;
+    ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+  }
 
   renderWorldTiles(ctx, state.world, state.time);
 
@@ -122,16 +139,7 @@ export function renderArena(
     }
   }
 
-  for (const s of state.structures) {
-    const colors = { pain_relay: '#a78bfa', sink_tower: '#34d399', fuse_shrine: '#c77dff' };
-    ctx.fillStyle = colors[s.type];
-    ctx.fillRect(s.x - 10, s.y - 10, 20, 20);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(s.x - 10, s.y - 10, 20, 20);
-  }
-
-  if (state.altarActive) {
+  if (state.shrineActive) {
     const pulse = 0.5 + Math.sin(state.time * 4) * 0.3;
     const atlas = getAtlas();
     if (atlas?.ready) {
@@ -139,39 +147,88 @@ export function renderArena(
       drawTile(ctx, atlas.tilemap, 6, 2, ARENA_W / 2 - 48, ARENA_H / 2 - 48, 3);
       ctx.globalAlpha = 1;
     } else {
-      ctx.strokeStyle = COLORS.altar;
+      ctx.strokeStyle = COLORS.shrine;
       ctx.lineWidth = 3;
       ctx.globalAlpha = pulse;
       ctx.strokeRect(ARENA_W / 2 - 60, ARENA_H / 2 - 60, 120, 120);
       ctx.globalAlpha = 1;
     }
-    ctx.fillStyle = COLORS.altar;
+    ctx.fillStyle = COLORS.shrine;
     ctx.font = '9px "Press Start 2P", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('MELD ALTAR', ARENA_W / 2, ARENA_H / 2 - 72);
+    ctx.fillText('MELD SHRINE', ARENA_W / 2, ARENA_H / 2 - 72);
   }
 
   const atlas = getAtlas();
   for (const pick of state.pickups) {
     if (atlas?.ready) {
       if (pick.kind === 'xp') {
-        const fw = 16;
-        drawSheetFrame(ctx, atlas.xpGem, Math.floor(state.time * 10) % 6, fw, 16, pick.x - 8, pick.y - 8, 1);
+        drawSheetFrame(ctx, atlas.painOrb, Math.floor(state.time * 10) % 4, 16, 16, pick.x - 8, pick.y - 8, 0.9);
+      } else if (pick.kind === 'pain_orb') {
+        ctx.globalAlpha = 0.85 + Math.sin(state.time * 6 + pick.id) * 0.15;
+        drawSheetFrame(ctx, atlas.painOrb, Math.floor(state.time * 8) % 4, 16, 16, pick.x - 8, pick.y - 8, 1);
+        ctx.globalAlpha = 1;
       } else {
-        drawSheetFrame(ctx, atlas.shard, 0, atlas.shard.width, atlas.shard.height, pick.x - 8, pick.y - 8, 0.8);
+        drawSheetFrame(ctx, atlas.remnant, 0, atlas.remnant.width / 4, atlas.remnant.height, pick.x - 8, pick.y - 8, 0.85);
       }
     } else {
-      ctx.fillStyle = pick.kind === 'xp' ? COLORS.xp : COLORS.shard;
+      const col = pick.kind === 'xp' ? COLORS.xp : pick.kind === 'remnant' ? COLORS.remnant : PAIN_COLORS[pick.painType ?? 'grief'];
+      ctx.fillStyle = col;
       ctx.beginPath();
-      ctx.arc(pick.x, pick.y, 5, 0, Math.PI * 2);
+      ctx.arc(pick.x, pick.y, 6, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  for (const route of state.painRoutes) {
+    const enemy = state.enemies.find((e) => e.id === route.enemyId);
+    const sink = state.sinks.find((s) => s.id === route.sinkId);
+    if (!enemy || !sink) continue;
+    drawPainRoute(
+      ctx,
+      enemy.x, enemy.y,
+      state.player.x, state.player.y,
+      sink.x, sink.y,
+      route.cx, route.cy,
+      painRouteColor(route.painType),
+      route.flow / 20,
+    );
+  }
+
+  for (const sink of state.sinks) {
+    if (atlas?.ready) {
+      const fw = Math.floor(atlas.sinkNode.width / 4) || 16;
+      drawSheetFrame(ctx, atlas.sinkNode, Math.floor(state.time * 4) % 4, fw, 16, sink.x - fw / 2, sink.y - 8, 1.2);
+    } else {
+      ctx.fillStyle = PAIN_COLORS[sink.painType];
+      ctx.beginPath();
+      ctx.arc(sink.x, sink.y, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const fill = sink.stored / sink.maxStored;
+    ctx.fillStyle = '#1a1228';
+    ctx.fillRect(sink.x - 12, sink.y + 12, 24, 4);
+    ctx.fillStyle = PAIN_COLORS[sink.painType];
+    ctx.fillRect(sink.x - 12, sink.y + 12, 24 * fill, 4);
+  }
+
+  for (const echo of state.strainEchoes) {
+    ctx.globalAlpha = echo.life * 0.4;
+    ctx.strokeStyle = COLORS.lash;
+    ctx.lineWidth = 2;
+    const ex = echo.x + Math.cos(echo.angle) * 50;
+    const ey = echo.y + Math.sin(echo.angle) * 50;
+    ctx.beginPath();
+    ctx.moveTo(echo.x, echo.y);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   for (const part of state.particles) {
     ctx.globalAlpha = part.life / part.maxLife;
     if (part.sprite && atlas?.ready) {
-      drawSheetFrame(ctx, atlas.xpGem, 0, 16, 16, part.x - part.size, part.y - part.size, part.size / 8);
+      drawSheetFrame(ctx, atlas.painOrb, 0, 16, 16, part.x - part.size, part.y - part.size, part.size / 8);
     } else {
       ctx.fillStyle = part.color;
       ctx.beginPath();
@@ -181,42 +238,33 @@ export function renderArena(
     ctx.globalAlpha = 1;
   }
 
+  if (state.ventPulse > 0) {
+    ctx.strokeStyle = `rgba(255, 68, 102, ${state.ventPulse * 0.6})`;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(state.player.x, state.player.y, 40 + (1 - state.ventPulse) * 80, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
   for (const p of state.projectiles) {
     ctx.fillStyle = p.color;
     ctx.shadowColor = p.color;
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.ellipse(p.x, p.y, 8, 4, Math.atan2(p.vy, p.vx), 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
   }
 
   for (const enemy of state.enemies) renderEnemy(ctx, enemy, state.time);
 
-  for (const m of state.minions) {
-    if (atlas?.ready) {
-      const fw = Math.floor(atlas.minion.width / 4) || 32;
-      drawSheetFrame(ctx, atlas.minion, Math.floor(state.time * 6) % 4, fw, atlas.minion.height, m.x - fw / 2, m.y - atlas.minion.height / 2, 0.6);
-    } else {
-      ctx.fillStyle = COLORS.minion;
-      ctx.fillRect(m.x - 8, m.y - 8, 16, 16);
-    }
-    const cap = m.burdenHeld / m.capacity;
-    ctx.fillStyle = '#1a1228';
-    ctx.fillRect(m.x - 10, m.y + 12, 20, 3);
-    ctx.fillStyle = burdenColor(cap);
-    ctx.fillRect(m.x - 10, m.y + 12, 20 * cap, 3);
-  }
-
-  const burdenRatio = state.burden.current / state.burden.max;
-  const atlas2 = getAtlas();
-  if (atlas2?.ready) {
-    const fw = Math.floor(atlas2.player.width / 4) || 32;
-    const fh = atlas2.player.height || 32;
+  if (atlas?.ready) {
+    const fw = Math.floor(atlas.player.width / 4) || 16;
+    const fh = atlas.player.height || 16;
     const moving = Math.abs(state.player.vx) + Math.abs(state.player.vy) > 20;
     const frame = moving ? Math.floor(state.time * 10) % 4 : 0;
     if (state.player.invuln > 0) ctx.filter = 'brightness(2)';
-    drawSheetFrame(ctx, atlas2.player, frame, fw, fh, state.player.x - fw / 2, state.player.y - fh / 2, 0.9, state.player.facing < 0);
+    drawSheetFrame(ctx, atlas.player, frame, fw, fh, state.player.x - fw / 2, state.player.y - fh / 2, 1.1, state.player.facing < 0);
     ctx.filter = 'none';
   } else {
     ctx.fillStyle = state.player.invuln > 0 ? '#fff' : burdenRatio > 0.85 ? COLORS.playerHurt : COLORS.player;
@@ -224,6 +272,19 @@ export function renderArena(
     ctx.arc(state.player.x, state.player.y, PLAYER_RADIUS, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  const aimLen = 28;
+  ctx.strokeStyle = COLORS.lash;
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.7;
+  ctx.beginPath();
+  ctx.moveTo(state.player.x, state.player.y);
+  ctx.lineTo(
+    state.player.x + Math.cos(state.player.aimAngle) * aimLen,
+    state.player.y + Math.sin(state.player.aimAngle) * aimLen,
+  );
+  ctx.stroke();
+  ctx.globalAlpha = 1;
 
   if (burdenRatio > 0.7 || state.burden.overflowPulse > 0) {
     const glow = burdenRatio > 0.85 ? 10 + state.burden.overflowPulse * 12 : 6;
@@ -324,7 +385,7 @@ export function renderHudBars(ctx: CanvasRenderingContext2D, state: ArenaState, 
   ctx.fillStyle = COLORS.textDim;
   ctx.fillText(`${Math.floor(state.time)}s`, canvasW - pad, pad + 26);
   ctx.fillText(`KILLS ${state.kills}`, canvasW - pad, pad + 42);
-  ctx.fillText(`LV ${state.player.level}`, canvasW - pad, pad + 58);
+  ctx.fillText(`SINKS ${state.sinks.length}/${state.maxSinks}`, canvasW - pad, pad + 58);
 
   if (state.charms.length > 0) {
     state.charms.slice(0, 10).forEach((c, i) => {

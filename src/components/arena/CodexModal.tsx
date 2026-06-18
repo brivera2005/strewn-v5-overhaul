@@ -1,4 +1,4 @@
-import { allCodexEntries } from '../../game/burden/codex';
+import { allCodexEntries } from '../../game/strewn/codex';
 import type { CharmId } from '../../game/arena/types';
 
 interface Props {
@@ -8,19 +8,19 @@ interface Props {
 
 export function CodexModal({ discoveredMelds, onClose }: Props) {
   const entries = allCodexEntries(discoveredMelds);
-  const categories = ['core', 'ecology', 'melds', 'structures', 'meta'] as const;
+  const categories = ['core', 'ecology', 'network', 'melds', 'meta'] as const;
   const labels: Record<string, string> = {
     core: 'Core Systems',
-    ecology: 'Burden Ecology',
+    ecology: 'Pain Types',
+    network: 'Pain Network',
     melds: 'Meld Recipes',
-    structures: 'Architecture',
     meta: 'Meta Layer',
   };
 
   return (
     <div className="modal-overlay codex-overlay">
       <div className="modal-panel codex-panel">
-        <h2 className="modal-title">BURDEN CODEX</h2>
+        <h2 className="modal-title">STREWN CODEX</h2>
         <p className="modal-sub">Press C during a run · {discoveredMelds.length} melds discovered</p>
         <div className="codex-scroll">
           {categories.map((cat) => {

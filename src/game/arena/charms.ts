@@ -2,7 +2,7 @@ import type { ActiveCharm, CharmDef, CharmId } from './types';
 
 export const CHARM_DEFS: Record<CharmId, CharmDef> = {
   shard: {
-    id: 'shard', name: 'Pain Shard', desc: 'Orbits and fires pain bolts at nearby foes.',
+    id: 'shard', name: 'Pain Shard', desc: 'Bonus lash damage and faster fire rate.',
     color: '#5ce1ff', tier: 'base', maxLevel: 5, painAffinity: 'grief',
   },
   anchor: {
@@ -10,7 +10,7 @@ export const CHARM_DEFS: Record<CharmId, CharmDef> = {
     color: '#94a3b8', tier: 'base', maxLevel: 5, painAffinity: 'grief',
   },
   conduit: {
-    id: 'conduit', name: 'Shared Conduit', desc: 'Routes 8% of burden to minions per level.',
+    id: 'conduit', name: 'Shared Conduit', desc: 'Boosts pain routing efficiency through sinks.',
     color: '#a78bfa', tier: 'base', maxLevel: 4,
   },
   thorns: {
@@ -54,7 +54,7 @@ export const CHARM_DEFS: Record<CharmId, CharmDef> = {
     color: '#f472b6', tier: 'base', maxLevel: 4, painAffinity: 'rage',
   },
   chain: {
-    id: 'chain', name: 'Chain Link', desc: 'Links minions — shared capacity boost.',
+    id: 'chain', name: 'Chain Link', desc: 'Links sinks for shared drain capacity.',
     color: '#fcd34d', tier: 'base', maxLevel: 4,
   },
   burning_anchor: {
