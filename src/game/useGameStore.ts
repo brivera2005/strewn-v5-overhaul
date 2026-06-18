@@ -2,6 +2,7 @@ import {
   CHOICE_TICK,
   TICK_MS_BASE,
   VECTOR_LABELS,
+  MATCH_SCORES,
   type PainVector,
 } from './constants';
 import {
@@ -12,14 +13,14 @@ import {
 } from './Simulation';
 import {
   createInitialState,
-  initTriageMode,
+  initOverworldMode,
   persistState,
   musicEngine,
   optimizeCriticalAssignments,
   simulateMultiPatientTick,
 } from './gameState';
 import { loadGame } from './saveGame';
-import type { GameState, TutorialStep, UndoAction } from './State';
+import type { GameState, TutorialStep, UndoAction, OverworldTutorialStep } from './State';
 import type { UpgradeCard } from './upgrades';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -47,6 +48,7 @@ import {
   rollLootDrop,
 } from './loot';
 import type { LootItem } from './loot';
+import { unlockZoneForRank } from './overworldMap';
 
 let toastIdCounter = 0;
 
@@ -97,7 +99,7 @@ export function useGameStore() {
     if (state.screen === 'start' || state.screen === 'cyoa') {
       musicEngine.resume();
       musicEngine.crossfadeTo('title_theme');
-    } else if (state.screen === 'triage') {
+    } else if (state.screen === 'triage' || state.screen === 'overworld') {
       musicEngine.resume();
       const critical = state.patients.filter((p) => !p.dead && (p.status === 'critical' || p.status === 'dying')).length;
       musicEngine.crossfadeTo(critical > 3 ? 'crisis_theme' : 'gameplay_ambient');
@@ -171,8 +173,10 @@ export function useGameStore() {
         ...createInitialState(),
         ...saved,
         screen: saved.screen === 'chapter0' || saved.screen === 'cyoa' || saved.screen === 'story'
-          ? 'triage'
-          : saved.screen,
+          ? 'overworld'
+          : saved.screen === 'triage'
+            ? 'overworld'
+            : saved.screen,
         hasSave: true,
         settings: { ...createInitialState().settings, ...saved.settings },
         activeUpgrades: saved.activeUpgrades ?? createInitialState().activeUpgrades,
@@ -182,6 +186,7 @@ export function useGameStore() {
         cyoaFlags: saved.cyoaFlags ?? [],
         playerStats: saved.playerStats ?? { ...DEFAULT_PLAYER_STATS },
         inventory: saved.inventory ?? [],
+        overworld: saved.overworld ?? createInitialState().overworld,
         showDeathVignette: false,
         ripple: null,
         toasts: [],
@@ -215,7 +220,7 @@ export function useGameStore() {
   );
 
   const cyoaAdvance = useCallback(
-    (target: 'chapter0' | 'triage' | 'continue') => {
+    (target: 'chapter0' | 'triage' | 'overworld' | 'continue') => {
       playClick();
       setState((s) => {
         if (target === 'chapter0') {
@@ -228,10 +233,10 @@ export function useGameStore() {
             tick: 0,
           };
         }
-        if (target === 'triage') {
-          const triage = initTriageMode({ ...s, chapter0Complete: true, cyoaNode: 'loot_reveal' });
-          persistState(triage);
-          return { ...triage, hasSave: true };
+        if (target === 'overworld' || target === 'triage') {
+          const world = initOverworldMode({ ...s, chapter0Complete: target === 'triage' ? true : s.chapter0Complete });
+          persistState(world);
+          return { ...world, hasSave: true };
         }
         return s;
       });
@@ -477,7 +482,7 @@ export function useGameStore() {
 
   const runTriageTick = useCallback(() => {
     setState((s) => {
-      if (s.screen !== 'triage' || s.paused) return s;
+      if (s.screen !== 'triage' && s.screen !== 'overworld' || s.paused) return s;
 
       const draft = structuredClone(s) as GameState;
       draft.tick += 1;
@@ -569,7 +574,7 @@ export function useGameStore() {
     });
   }, []);
 
-  const runTick = state.screen === 'triage' ? runTriageTick : runChapter0Tick;
+  const runTick = state.screen === 'triage' || state.screen === 'overworld' ? runTriageTick : runChapter0Tick;
 
   useEffect(() => {
     if (tickTimerRef.current) {
@@ -578,12 +583,13 @@ export function useGameStore() {
     }
 
     const isPlaying =
-      (state.screen === 'chapter0' || state.screen === 'triage') &&
+      (state.screen === 'chapter0' || state.screen === 'triage' || state.screen === 'overworld') &&
       !state.paused &&
       !state.endReason &&
       !state.showPathChoice &&
       !state.showUpgradePicker &&
-      !state.showLootPicker;
+      !state.showLootPicker &&
+      !state.overworld.showCommandMenu;
 
     if (isPlaying) {
       const ms = (TICK_MS_BASE / state.speed) / state.settings.tickSpeedMultiplier;
@@ -602,6 +608,7 @@ export function useGameStore() {
     state.showPathChoice,
     state.showUpgradePicker,
     state.showLootPicker,
+    state.overworld.showCommandMenu,
     runTick,
   ]);
 
@@ -739,7 +746,14 @@ export function useGameStore() {
         togglePause();
       }
       if (e.key === 'Escape') {
-        setState((s) => ({ ...s, drawerPatientId: null, showShortcuts: false, showHelp: false }));
+        setState((s) => ({
+          ...s,
+          drawerPatientId: null,
+          showShortcuts: false,
+          showHelp: false,
+          overworld: { ...s.overworld, showCommandMenu: false },
+          screen: s.overworld.showCommandMenu ? 'overworld' : s.screen,
+        }));
       }
       if (e.key === 'o' && state.screen === 'triage') optimizeTriage();
     };
@@ -797,6 +811,184 @@ export function useGameStore() {
     openDrawer(patientId);
     setTriageTab('database');
   }, [selectPatient, openDrawer, setTriageTab]);
+
+  const moveOverworldPlayer = useCallback((x: number, y: number, facing: GameState['overworld']['facing']) => {
+    setState((s) => ({
+      ...s,
+      overworld: { ...s.overworld, playerX: x, playerY: y, facing },
+    }));
+  }, []);
+
+  const changeZone = useCallback((zoneId: string, x: number, y: number) => {
+    setState((s) => {
+      const next = {
+        ...s,
+        overworld: { ...s.overworld, zoneId, playerX: x, playerY: y },
+      };
+      persistState(next);
+      return next;
+    });
+    musicEngine.playSfx('ui_click');
+  }, []);
+
+  const toggleCommandMenu = useCallback(() => {
+    setState((s) => ({
+      ...s,
+      overworld: { ...s.overworld, showCommandMenu: !s.overworld.showCommandMenu },
+    }));
+    playClick();
+  }, [playClick]);
+
+  const closeCommandMenu = useCallback(() => {
+    setState((s) => ({
+      ...s,
+      screen: 'overworld',
+      overworld: { ...s.overworld, showCommandMenu: false },
+    }));
+  }, []);
+
+  const advanceOverworldTutorial = useCallback((step: OverworldTutorialStep) => {
+    setState((s) => ({
+      ...s,
+      overworld: { ...s.overworld, tutorialStep: step },
+      tutorialComplete: step === 'done',
+      chapter0Complete: step === 'done' ? true : s.chapter0Complete,
+    }));
+  }, []);
+
+  const showOverworldToast = useCallback((text: string) => {
+    setState((s) => addToast(s, text, 'info'));
+  }, []);
+
+  const resolveEncounter = useCallback(
+    (patientId: string, action: 'share' | 'minion' | 'endure' | 'relic'): { daly: number; loot?: LootItem } => {
+      let result: { daly: number; loot?: LootItem } = { daly: 0 };
+      setState((s) => {
+        if (patientId === 'tutorial-ethan') {
+          musicEngine.playSfx('assign');
+          musicEngine.playSfx('relief');
+          const next = addToast(
+            {
+              ...s,
+              patientPain: Math.max(20, s.patientPain - 18),
+              chapter0Complete: true,
+              dalysSaved: s.dalysSaved + 5,
+              triageStats: { ...s.triageStats, stabilized: s.triageStats.stabilized + 1, dalysSaved: s.triageStats.dalysSaved + 5 },
+              streakTicks: s.streakTicks + 1,
+              combo: updateCombo(s.combo, Date.now(), s.activeUpgrades.comboDurationBonus),
+            },
+            'Ethan\'s fever eases. +5 DALY',
+            'success',
+          );
+          result = { daly: 5 };
+          persistState(next);
+          return next;
+        }
+
+        const patient = s.patients.find((p) => p.id === patientId);
+        if (!patient || patient.dead) return s;
+
+        const vector: PainVector = patient.painLoad > 55 ? 'inflammatory' : 'systemic';
+        let draft = structuredClone(s) as GameState;
+
+        if (action === 'share') {
+          const family = draft.participants.filter((p) => p.active && !p.id.startsWith('minion-') && !p.assignedPatientId);
+          const best = family.sort((a, b) => {
+            const ma = MATCH_SCORES[a.id]?.[vector] ?? 50;
+            const mb = MATCH_SCORES[b.id]?.[vector] ?? 50;
+            return mb - ma;
+          })[0];
+          if (best) {
+            const stats = effectivePlayerStats(draft);
+            const bonus = 1 + draft.activeUpgrades.matchQualityBonus + stats.reliefPower;
+            draft.patients = draft.patients.map((p) =>
+              p.id === patientId
+                ? {
+                    ...p,
+                    allocations: [...p.allocations.filter((a) => a.participantId !== best.id), { participantId: best.id, vector, weight: 100 * bonus }],
+                    painLoad: Math.max(8, p.painLoad - 18 * bonus),
+                    matchAvg: Math.min(99, p.matchAvg + 5),
+                  }
+                : p,
+            );
+            draft.participants = draft.participants.map((p) =>
+              p.id === best.id ? { ...p, assignedPatientId: patientId, le: Math.max(5, p.le - 8) } : p,
+            );
+          }
+        } else if (action === 'minion') {
+          const minion = draft.participants.find((p) => p.id.startsWith('minion-') && p.active && !p.assignedPatientId && p.le > 15);
+          if (minion) {
+            draft.patients = draft.patients.map((p) =>
+              p.id === patientId
+                ? {
+                    ...p,
+                    allocations: [...p.allocations, { participantId: minion.id, vector, weight: 85 }],
+                    painLoad: Math.max(8, p.painLoad - 14),
+                  }
+                : p,
+            );
+            draft.participants = draft.participants.map((p) =>
+              p.id === minion.id ? { ...p, assignedPatientId: patientId } : p,
+            );
+          }
+        } else if (action === 'endure') {
+          draft.patients = draft.patients.map((p) =>
+            p.id === patientId ? { ...p, status: 'endured' as const, allocations: [] } : p,
+          );
+        } else if (action === 'relic' && draft.inventory.length > 0) {
+          const relicId = draft.inventory[draft.inventory.length - 1].id;
+          draft.patients = draft.patients.map((p) =>
+            p.id === patientId ? { ...p, painLoad: Math.max(5, p.painLoad - 25) } : p,
+          );
+          draft.inventory = draft.inventory.slice(0, -1);
+          void relicId;
+        }
+
+        const updated = draft.patients.find((p) => p.id === patientId)!;
+        const stabilized = updated.painLoad < 25 && updated.status !== 'endured' && updated.status !== 'dead';
+        if (stabilized && updated.status !== 'stable') {
+          draft.patients = draft.patients.map((p) =>
+            p.id === patientId ? { ...p, status: 'stable' as const, painLoad: Math.max(5, p.painLoad - 5) } : p,
+          );
+          draft.triageStats = { ...draft.triageStats, stabilized: draft.triageStats.stabilized + 1, dalysSaved: draft.triageStats.dalysSaved + 5 };
+          draft.dalysSaved += 5;
+          draft.streakTicks += 1;
+          draft.combo = updateCombo(draft.combo, Date.now(), draft.activeUpgrades.comboDurationBonus);
+          draft.objectives = updateObjectives(draft.objectives, { type: 'stabilize' });
+          musicEngine.playSfx('relief');
+          musicEngine.playSting('success_sting');
+
+          const drops = rollLootDrop(draft.streakTicks, draft.directorRank);
+          let loot: LootItem | undefined;
+          if (drops.length > 0) {
+            loot = drops[0];
+            draft.inventory = [...draft.inventory, { id: loot.id, acquiredTick: draft.tick }];
+          }
+
+          const newRank = rankFromDalys(draft.dalysSaved);
+          if (newRank > draft.directorRank) {
+            draft.directorRank = newRank;
+            draft.pendingUpgradeChoices = pickRandomUpgrades(draft.ownedUpgrades, 3);
+            draft.showUpgradePicker = true;
+          }
+          draft.overworld = {
+            ...draft.overworld,
+            unlockedZones: unlockZoneForRank(draft.directorRank),
+          };
+          result = { daly: 5, loot };
+          draft = addToast(draft, `Stabilized ${patient.name.split(' ')[0]}! +5 DALY`, 'success');
+        } else {
+          draft = addToast(draft, `Relief applied to ${patient.name.split(' ')[0]}`, 'success');
+          musicEngine.playSfx('assign');
+        }
+
+        persistState(draft);
+        return draft;
+      });
+      return result;
+    },
+    [],
+  );
 
   const getAllocationForVector = useCallback(
     (vector: PainVector) => state.allocations.filter((a) => a.vector === vector && a.weight > 0),
@@ -860,6 +1052,13 @@ export function useGameStore() {
     jumpToPatient,
     getAllocationForVector,
     getParticipantAllocation,
+    moveOverworldPlayer,
+    changeZone,
+    toggleCommandMenu,
+    closeCommandMenu,
+    advanceOverworldTutorial,
+    showOverworldToast,
+    resolveEncounter,
   };
 }
 

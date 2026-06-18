@@ -87,7 +87,7 @@ export const HOUSEHOLD_ID = 'US-HH-MITCHELL-001';
 export const WELCOME_TEXT = {
   title: 'What is Strewn?',
   body: 'Strewn distributes pain across family and minions so no single body breaks. Loot drops. Stats stack. The loop never stops.',
-  subtitle: 'Tonight you learn why the weight exists — one choice at a time.',
+  subtitle: 'Tonight you learn why the weight exists, one choice at a time.',
 };
 
 export const STORY_PARAGRAPHS = [

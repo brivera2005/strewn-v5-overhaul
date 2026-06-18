@@ -20,6 +20,7 @@ import { createDailyObjectives } from './objectives';
 import { createMinionPool } from './minions';
 import { CYOA_START } from './tutorialFlow';
 import { applyLootStats, DEFAULT_PLAYER_STATS, LOOT_TABLE } from './loot';
+import { DEFAULT_OVERWORLD, unlockZoneForRank } from './overworldMap';
 
 export function createTriagePatients(count: number): PatientRecord[] {
   const seeds = generatePatientBatch(count);
@@ -132,6 +133,23 @@ export function createInitialState(): GameState {
     undoStack: [],
     recommendedAction: 'optimize-critical',
     firstLaunchHints: true,
+    overworld: { ...DEFAULT_OVERWORLD },
+  };
+}
+
+export function initOverworldMode(state: GameState): GameState {
+  const triage = initTriageMode({ ...state, screen: 'triage', gameMode: 'triage' });
+  const rank = rankFromDalys(triage.dalysSaved);
+  return {
+    ...triage,
+    screen: 'overworld',
+    gameMode: 'overworld',
+    paused: true,
+    overworld: {
+      ...DEFAULT_OVERWORLD,
+      unlockedZones: unlockZoneForRank(rank),
+      tutorialStep: state.chapter0Complete ? 'done' : 'walk_sarah',
+    },
   };
 }
 
@@ -193,6 +211,7 @@ export function persistState(state: GameState): void {
     cyoaFlags: state.cyoaFlags,
     playerStats: state.playerStats,
     inventory: state.inventory,
+    overworld: state.overworld,
   };
   saveGame(data);
 }

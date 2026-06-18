@@ -10,6 +10,7 @@ import { PathChoiceModal } from './components/PathChoiceModal';
 import { ResultScreen } from './components/ResultScreen';
 import { HelpModal } from './components/HelpModal';
 import { TriageDashboard } from './components/TriageDashboard';
+import { Overworld } from './components/Overworld';
 import { SettingsModal } from './components/SettingsModal';
 import { CreditsScreen } from './components/CreditsScreen';
 import { ToastSystem } from './components/ToastSystem';
@@ -64,6 +65,7 @@ export default function App() {
     jumpToPatient,
     getAllocationForVector,
     getParticipantAllocation,
+    closeCommandMenu,
   } = store;
 
   const { screen, ripple } = state;
@@ -167,6 +169,58 @@ export default function App() {
 
           <DraggableTutorial step={state.tutorialStep} selectedParticipantId={state.selectedParticipantId} />
           {state.showPathChoice && <PathChoiceModal onChoose={choosePath} />}
+        </>
+      )}
+
+      {screen === 'overworld' && (
+        <>
+          <Overworld store={store} />
+          {state.overworld.showCommandMenu && (
+            <div className="command-menu-overlay">
+              <div className="command-menu-header">
+                <h2>Burden Command</h2>
+                <button type="button" className="ow-menu-btn" onClick={closeCommandMenu}>Esc · Back to World</button>
+              </div>
+              <TriageDashboard
+                state={state}
+                onTabChange={setTriageTab}
+                onSelectPatient={selectPatient}
+                onOpenDrawer={openDrawer}
+                onSetPriority={setPatientPriority}
+                onSetFilter={setPatientFilter}
+                onSetSearch={setPatientSearch}
+                onSort={sortPatients}
+                onTogglePause={togglePause}
+                onSetSpeed={setSpeed}
+                onOptimize={optimizeTriage}
+                onAssignHelper={assignHelperToPatient}
+                onBulkAssign={bulkAssignBest}
+                onBulkEndure={bulkEndure}
+                onBulkPriority={bulkSetPriority}
+                onUnlockResearch={unlockResearch}
+                onAlertClick={jumpToPatient}
+                highlightPatientId={highlightPatientId}
+                recommendedPatientId={recommendedPatientId}
+              />
+              <PatientDetailDrawer
+                patient={drawerPatient}
+                participants={state.participants}
+                onClose={closeDrawer}
+                onAssignHelper={assignHelperToPatient}
+                onSetPriority={setPatientPriority}
+              />
+            </div>
+          )}
+          {state.showUpgradePicker && state.pendingUpgradeChoices && (
+            <UpgradePicker
+              cards={state.pendingUpgradeChoices}
+              rank={state.directorRank}
+              onPick={pickUpgrade}
+            />
+          )}
+          {state.showLootPicker && state.pendingLootChoices && (
+            <LootPicker items={state.pendingLootChoices} onPick={pickLoot} />
+          )}
         </>
       )}
 

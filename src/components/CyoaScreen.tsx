@@ -3,7 +3,7 @@ import { getCyoaNode } from '../game/tutorialFlow';
 interface Props {
   nodeId: string;
   onChoose: (nextId: string, flag?: string) => void;
-  onAdvance: (target: 'chapter0' | 'triage' | 'continue') => void;
+  onAdvance: (target: 'chapter0' | 'triage' | 'overworld' | 'continue') => void;
 }
 
 export function CyoaScreen({ nodeId, onChoose, onAdvance }: Props) {
@@ -27,7 +27,11 @@ export function CyoaScreen({ nodeId, onChoose, onAdvance }: Props) {
             className="btn-primary cyoa-btn"
             onClick={() => onAdvance(node.advance!)}
           >
-            {node.advance === 'chapter0' ? 'Enter the Mitchell house' : 'Continue'}
+            {node.advance === 'chapter0'
+              ? 'Enter the Mitchell house'
+              : node.advance === 'overworld'
+                ? 'Enter the world'
+                : 'Continue'}
           </button>
         )}
 

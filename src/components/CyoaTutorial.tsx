@@ -4,7 +4,7 @@ import type { CyoaChoice } from '../game/tutorialFlow';
 interface Props {
   nodeId: string;
   onChoose: (choice: CyoaChoice) => void;
-  onAdvance: (target: 'chapter0' | 'triage' | 'continue') => void;
+  onAdvance: (target: 'chapter0' | 'triage' | 'overworld' | 'continue') => void;
 }
 
 export function CyoaTutorial({ nodeId, onChoose, onAdvance }: Props) {

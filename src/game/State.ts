@@ -10,10 +10,23 @@ export type AppScreen =
   | 'cyoa'
   | 'story'
   | 'chapter0'
+  | 'overworld'
   | 'triage'
   | 'result'
   | 'settings'
   | 'credits';
+
+export type OverworldTutorialStep = 'walk_sarah' | 'walk_ethan' | 'first_heal' | 'done';
+
+export interface OverworldState {
+  zoneId: string;
+  playerX: number;
+  playerY: number;
+  facing: 'up' | 'down' | 'left' | 'right';
+  tutorialStep: OverworldTutorialStep | null;
+  unlockedZones: string[];
+  showCommandMenu: boolean;
+}
 
 export type TriageTab = 'command' | 'database' | 'minions' | 'inventory' | 'research';
 
@@ -149,7 +162,7 @@ export interface GameAlert {
 
 export interface GameState {
   screen: AppScreen;
-  gameMode: 'chapter0' | 'triage' | null;
+  gameMode: 'chapter0' | 'triage' | 'overworld' | null;
   tick: number;
   paused: boolean;
   speed: 1 | 2 | 3;
@@ -218,6 +231,7 @@ export interface GameState {
   undoStack: UndoAction[];
   recommendedAction: string | null;
   firstLaunchHints: boolean;
+  overworld: OverworldState;
 }
 
 export interface TickResult {
@@ -263,5 +277,6 @@ export interface SaveData {
   cyoaFlags?: string[];
   playerStats?: PlayerStats;
   inventory?: OwnedLoot[];
+  overworld?: OverworldState;
   chapter0State?: Partial<GameState>;
 }

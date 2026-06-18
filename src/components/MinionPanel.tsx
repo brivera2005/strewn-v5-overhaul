@@ -34,7 +34,7 @@ export function MinionPanel({ minions, family }: Props) {
       <div className="minion-section glass-panel">
         <div className="panel-label">Minions · Burden Constructs</div>
         <p className="minion-hint">
-          Abstract carriers with no faces — only capacity. Deploy them like tools, not people.
+          Abstract carriers with no faces, only capacity. Deploy them like tools, not people.
         </p>
         <div className="minion-type-grid">
           {(Object.keys(MINION_TYPES) as MinionType[]).map((type) => {
