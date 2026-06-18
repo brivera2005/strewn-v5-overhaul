@@ -1,60 +1,99 @@
-# Strewn — Burden Loop v5
+# Burden Surge
 
-**Share the weight. Stack the loot. Deploy the minions.**
+**Absorb suffering. Route the weight. Fuse charms. Survive the storm.**
+
+A snappy arena roguelite built on one idea: pain is a shared resource pool. Enemies bleed burden into you. Overflow hurts. Skill means routing that weight to minions, relics, and fused abilities.
 
 Double-click to play. No terminal, no browser tab.
 
 ---
 
-## Play (easiest)
+## Play
 
-**Double-click `launch-strewn.bat`** or **`release\Strewn.exe`** after building.
-
----
-
-## What's new in v5
-
-- **CYOA tutorial** — choose-your-own-adventure intro that reveals mechanics one at a time
-- **Family + minions** — your household in Chapter 0; abstract minion constructs in triage (no NPC volunteers)
-- **Loot & stats** — relics drop on stabilizations; Resilience, Insight, Burden Capacity, Relief Power stack
-- **Addiction loop** — combos, streaks, rank-up upgrades, research tree, daily objectives
-- **World map removed** — focus on command center, triage DB, minion deployment
+**Double-click `release\Strewn.exe`** after building, or run `npm run electron:dev`.
 
 ---
 
-## How to play
+## Core loop
 
-1. **New Game** → CYOA story teaches pain channels, family, and the Strewn philosophy
-2. **Chapter 0** → guided tutorial: assign Sarah → Inflammatory → Play → Mike → Systemic → path choice
-3. **CYOA bridge** → learn about minions and loot before entering triage
-4. **Burden Command** → deploy minions, pick upgrades, collect relics, save cases
+1. **SURGE NOW** drops you into a top-down arena survivor run (15 min or until you shatter the final Grief Anchor).
+2. **Enemies emit suffering** into your Burden meter as they live and die.
+3. **Overflow damages you** when burden exceeds capacity. Charms, minions, and melds expand or redirect the pool.
+4. **Level up** mid-run and pick Burden Charms (auto-attacks, drains, capacity, auras).
+5. **Meld Altar** appears periodically: slot two charms (keys 1/2), press E to fuse into a stronger hybrid (Balatro-style discovery).
+6. **Die or win**, earn Shards, spend them in the Meta Shop, then hit **ONE MORE RUN**.
 
-### Controls
+---
+
+## Burden mechanic
+
+| Concept | Behavior |
+|---------|----------|
+| Burden Pool | Shared meter; fills from enemy proximity, deaths, and ambient suffering |
+| Overflow | When full, you take escalating damage and thorns/novas may trigger |
+| Minions | SPACE deploys a burden sink (costs burden); orbits you and absorbs share |
+| Charms | Passive/active tools that manipulate the pool (drain, route, weaponize) |
+| Grief Anchors | Boss waves every 5 waves; massive burden burst on death |
+
+---
+
+## Meld system
+
+Eight base charms can fuse into six hybrids at the Meld Altar:
+
+| Recipe | Result |
+|--------|--------|
+| Ember + Anchor | Burning Anchor (capacity + fire nova on overflow) |
+| Conduit + Thorns | Spite Web (minion burden share + thorns) |
+| Void + Conduit | Void Conduit (minions fire void bolts from held pain) |
+| Ember + Relay | Ember Relay (kill relief becomes burn splash) |
+| Sponge + Anchor | Grief Catalyst (passive drain + heal on pickup) |
+| Shard + Ember | Burden Storm (twin orbital pain bolts) |
+
+Discovered melds appear in the Meta Shop and can roll on future level-ups.
+
+---
+
+## Controls
 
 | Input | Action |
 |-------|--------|
-| Click family/minion | Select helper |
-| Click pain channel | Assign selected helper |
-| Play / Pause | Advance or stop time |
-| 1× / 2× / 3× | Simulation speed |
-| ? | Keyboard shortcuts |
+| WASD / Arrows | Move |
+| SPACE | Deploy minion (burden sink) |
+| 1 / 2 | Slot charm for meld |
+| E | Fuse at Meld Altar |
+| ESC | Pause |
+| Mouse | (future) optional aim override |
 
 ---
 
-## Build commands
+## Meta progression
+
+- **Shards** from kills, waves, melds, and run performance
+- **Meta Shop**: max HP, burden capacity, move speed, shard bonus, extra minion slots, starting charm (one-time)
+
+---
+
+## Build
 
 | Command | Output |
 |---------|--------|
-| `npm run build` | Frontend → `dist/` |
-| `npm run electron:build` | Portable exe → `release/Strewn.exe` |
+| `npm run build` | Frontend to `dist/` |
+| `npm run electron:build` | Portable exe to `release/Strewn.exe` |
 | `npm run electron:dev` | Dev window with hot reload |
 
 ---
 
-## Tech stack
+## Tech
 
-React + TypeScript + Vite + Electron/Tauri. Core simulation in `src/game/Simulation.ts`.
+React + TypeScript + Vite + Electron. Canvas arena loop in `src/game/arena/`. Procedural pixel rendering + Web Audio chiptune (`MusicEngine.ts`). Fonts: Press Start 2P, Pixelify Sans (Google Fonts).
 
 ---
 
-*"Today it's us. Tomorrow you'll run the registry."*
+## Assets
+
+Procedural canvas art (CC0-style pixel aesthetic). Audio: procedural chiptune engine. Kenney/OpenGameArt bundles attempted; procedural fallback used where downloads were unavailable.
+
+---
+
+*"The weight is yours. Pass it on."*

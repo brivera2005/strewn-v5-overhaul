@@ -1,8 +1,8 @@
 {
   "name": "strewn",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "author": "Strewn",
-  "description": "Strewn v5: CYOA Tutorial + Burden Loop (Family, Minions, Loot)",
+  "description": "Burden Surge: arena roguelite about sharing pain, fusing charms, and surviving the grief storm",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "build": {
     "appId": "com.strewn.household",
-    "productName": "Strewn",
+    "productName": "Burden Surge",
     "directories": {
       "output": "release"
     },
