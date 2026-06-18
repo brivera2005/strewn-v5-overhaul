@@ -61,7 +61,7 @@ export function MetaShop({ meta, onBuy, onBuyCharm, onBack }: Props) {
           })}
         </div>
         <h2 className="shop-section">Discovered Melds</h2>
-        <div className="meld-discovery">
+        <div className="meld-list">
           {meta.discoveredMelds.length === 0 ? (
             <p>Fuse charms at the Meld Altar to discover hybrids.</p>
           ) : (

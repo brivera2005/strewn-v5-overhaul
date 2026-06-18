@@ -14,10 +14,12 @@ export function MainMenu({ shards, totalRuns, bestKills, onStart, onShop, onSett
     <div className="screen menu-screen">
       <div className="menu-bg" />
       <div className="menu-content">
-        <p className="menu-tag">ROGUELITE ARENA SURVIVOR</p>
+        <p className="menu-tag">ROGUELITE BURDEN SURVIVOR</p>
         <h1 className="menu-title">BURDEN SURGE</h1>
-        <p className="menu-sub">
-          Absorb suffering. Overflow and die. Fuse charms. Deploy minions as burden sinks.
+        <p className="menu-story">
+          The world shattered. Every wound echoes across the fragments — grief, rage, dread, and hollow silence.
+          You are a Surge-bearer: the only one who can hold the shared pain long enough to fuse it into power.
+          Route the weight. Meld the suffering. Or overflow and break.
         </p>
         <div className="menu-stats">
           <span>Shards {shards}</span>
@@ -57,7 +59,7 @@ export function MainMenu({ shards, totalRuns, bestKills, onStart, onShop, onSett
           </button>
         </div>
         <div className="menu-controls">
-          <p>WASD move · SPACE deploy minion · 1/2 meld slots · E fuse at altar · ESC pause</p>
+          <p>WASD · SPACE minion · 1/2 meld · E fuse · B build · C codex · ESC pause</p>
         </div>
       </div>
     </div>

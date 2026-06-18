@@ -14,10 +14,14 @@ export const ALTAR_DURATION = 12;
 export const XP_GEM_VALUE = 8;
 export const SHARD_DROP_CHANCE = 0.08;
 
+export const ACCEL = 1200;
+export const FRICTION = 8;
+export const MAX_VELOCITY_MULT = 1.35;
+
 export const COLORS = {
-  bg: '#0d0a14',
-  floor: '#16122a',
-  grid: '#1f1838',
+  bg: '#08060f',
+  floor: '#12101c',
+  grid: '#1a1628',
   player: '#00d4aa',
   playerHurt: '#ff4d6a',
   burdenLow: '#7b61ff',
