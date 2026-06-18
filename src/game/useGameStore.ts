@@ -99,7 +99,11 @@ export function useGameStore() {
     if (state.screen === 'start' || state.screen === 'cyoa') {
       musicEngine.resume();
       musicEngine.crossfadeTo('title_theme');
-    } else if (state.screen === 'triage' || state.screen === 'overworld') {
+    } else if (state.screen === 'overworld') {
+      musicEngine.resume();
+      const critical = state.patients.filter((p) => !p.dead && (p.status === 'critical' || p.status === 'dying')).length;
+      musicEngine.playZoneMusic(state.overworld.zoneId, critical > 3);
+    } else if (state.screen === 'triage') {
       musicEngine.resume();
       const critical = state.patients.filter((p) => !p.dead && (p.status === 'critical' || p.status === 'dying')).length;
       musicEngine.crossfadeTo(critical > 3 ? 'crisis_theme' : 'gameplay_ambient');
@@ -107,7 +111,7 @@ export function useGameStore() {
       musicEngine.resume();
       musicEngine.crossfadeTo('gameplay_ambient');
     }
-  }, [state.screen, state.patients]);
+  }, [state.screen, state.patients, state.overworld.zoneId]);
 
   const triggerRipple = useCallback((event?: React.MouseEvent) => {
     if (event) {
