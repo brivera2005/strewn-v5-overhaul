@@ -1,5 +1,7 @@
 /** Kenney sprite atlas loader — tilemap_packed + character sheets */
 
+import { assetUrl } from '../../assetUrl';
+
 export const TILE_SIZE = 16;
 export const TILE_STRIDE = 17; // 16px tile + 1px gap in separate tiles; packed uses 16
 
@@ -33,15 +35,15 @@ export function loadAssets(): Promise<SpriteAtlas> {
   if (loadPromise) return loadPromise;
 
   loadPromise = Promise.all([
-    loadImage('/assets/tiles/tilemap_packed.png'),
-    loadImage('/assets/sprites/player.png'),
-    loadImage('/assets/sprites/enemy_wretch.png'),
-    loadImage('/assets/sprites/enemy_howler.png'),
-    loadImage('/assets/sprites/enemy_anchor.png'),
-    loadImage('/assets/sprites/enemy_boss.png'),
-    loadImage('/assets/sprites/minion.png'),
-    loadImage('/assets/sprites/xp_gem.png'),
-    loadImage('/assets/sprites/shard.png'),
+    loadImage(assetUrl('assets/tiles/tilemap_packed.png')),
+    loadImage(assetUrl('assets/sprites/player.png')),
+    loadImage(assetUrl('assets/sprites/enemy_wretch.png')),
+    loadImage(assetUrl('assets/sprites/enemy_howler.png')),
+    loadImage(assetUrl('assets/sprites/enemy_anchor.png')),
+    loadImage(assetUrl('assets/sprites/enemy_boss.png')),
+    loadImage(assetUrl('assets/sprites/minion.png')),
+    loadImage(assetUrl('assets/sprites/xp_gem.png')),
+    loadImage(assetUrl('assets/sprites/shard.png')),
   ]).then(([tilemap, player, enemyWretch, enemyHowler, enemyAnchor, enemyBoss, minion, xpGem, shard]) => {
     atlas = {
       tilemap,

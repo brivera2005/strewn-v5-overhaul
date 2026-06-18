@@ -1,10 +1,12 @@
+import { assetUrl } from '../assetUrl';
+
 type TrackId = 'menu' | 'combat' | 'boss';
 type SfxId = 'ui_click' | 'hit' | 'vent' | 'level_up' | 'death' | 'meld' | 'relief' | 'heartbeat' | 'sink';
 
 const TRACK_FILES: Record<TrackId, string> = {
-  menu: '/assets/music/menu.ogg',
-  combat: '/assets/music/combat.ogg',
-  boss: '/assets/music/boss.ogg',
+  menu: assetUrl('assets/music/menu.ogg'),
+  combat: assetUrl('assets/music/combat.ogg'),
+  boss: assetUrl('assets/music/boss.ogg'),
 };
 
 const A4 = 440;
