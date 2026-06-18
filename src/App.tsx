@@ -1,6 +1,6 @@
 import { Header } from './components/Header';
 import { StartScreen } from './components/StartScreen';
-import { CyoaTutorial } from './components/CyoaTutorial';
+import { CyoaScreen } from './components/CyoaScreen';
 import { PatientCard } from './components/PatientCard';
 import { PainChannelCard } from './components/PainChannelCard';
 import { FamilyMemberCard } from './components/FamilyMemberCard';
@@ -94,9 +94,9 @@ export default function App() {
       )}
 
       {screen === 'cyoa' && (
-        <CyoaTutorial
+        <CyoaScreen
           nodeId={state.cyoaNode}
-          onChoose={(choice) => cyoaChoose(choice.next, choice.flag)}
+          onChoose={cyoaChoose}
           onAdvance={cyoaAdvance}
         />
       )}
@@ -113,7 +113,7 @@ export default function App() {
                 <p className="relief-rate">
                   {state.globalReliefRate > 0
                     ? `${(state.globalReliefRate * 100).toFixed(0)}% of Ethan's pain is being shared`
-                    : 'Assign family to start sharing pain'}
+                    : 'Assign helpers to start sharing pain'}
                 </p>
               </div>
               {VECTORS.map((vector: PainVector) => (
@@ -133,7 +133,7 @@ export default function App() {
             </div>
 
             <div className="panel">
-              <div className="panel-label">Your Family</div>
+              <div className="panel-label">Family Roster</div>
               <div className="roster-list">
                 {state.participants.map((p) => (
                   <FamilyMemberCard

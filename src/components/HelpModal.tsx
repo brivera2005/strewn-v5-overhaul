@@ -9,27 +9,34 @@ export function HelpModal({ onClose }: Props) {
         <h2>How to play</h2>
 
         <div className="help-section">
+          <h3>CYOA Tutorial</h3>
+          <p>
+            New games start with a choose-your-own-adventure intro that slowly reveals what Strewn is.
+            Then Chapter 0 walks you through assignments step by step.
+          </p>
+        </div>
+
+        <div className="help-section">
           <h3>Chapter 0</h3>
           <p>
-            Lower Ethan&apos;s fever below 100°F by assigning family members to pain channels
-            and advancing time. Keep everyone&apos;s Life Energy above 15%.
+            Lower Ethan&apos;s fever below 100°F by assigning family to pain channels and advancing time.
+            Keep everyone&apos;s Life Energy above 15%.
           </p>
         </div>
 
         <div className="help-section">
-          <h3>Planetary Triage</h3>
+          <h3>Burden Command</h3>
           <p>
-            Manage 15-30 patients across the US. Sort and filter the database, assign volunteers
-            from the network panel, and use Optimize Critical First when overwhelmed.
-            Deaths are expected. Keep going.
+            Manage patients across hospital wards. Assign family and minion constructs from the
+            Family &amp; Minions tab. Stabilize patients to earn loot relics that boost your stats.
           </p>
         </div>
 
         <div className="help-section">
-          <h3>Controls</h3>
+          <h3>The loop</h3>
           <p>
-            Click a family member or volunteer to select, then assign. Press Play to advance time.
-            Ctrl+click to multi-select patients in triage mode.
+            Assign carriers → stabilize patients → earn Relief Points and loot → rank up →
+            deploy more minions → save more people.
           </p>
         </div>
 

@@ -2,7 +2,7 @@
   "name": "strewn",
   "version": "5.0.0",
   "author": "Strewn",
-  "description": "Strewn v5: Burden Loop Overhaul (CYOA + Minions + Loot)",
+  "description": "Strewn v5: CYOA Tutorial + Burden Loop (Family, Minions, Loot)",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {

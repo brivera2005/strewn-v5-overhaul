@@ -24,7 +24,7 @@ export function CyoaScreen({ nodeId, onChoose, onAdvance }: Props) {
         {node.advance && (
           <button
             type="button"
-            className="btn-primary cyoa-choice"
+            className="btn-primary cyoa-btn"
             onClick={() => onAdvance(node.advance!)}
           >
             {node.advance === 'chapter0' ? 'Enter the Mitchell house' : 'Continue'}
@@ -37,7 +37,7 @@ export function CyoaScreen({ nodeId, onChoose, onAdvance }: Props) {
               <button
                 key={c.label}
                 type="button"
-                className="btn-secondary cyoa-choice"
+                className="cyoa-choice-btn"
                 onClick={() => onChoose(c.next, c.flag)}
               >
                 {c.label}

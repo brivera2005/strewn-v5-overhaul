@@ -4,7 +4,8 @@ import { CommandCenter } from './CommandCenter';
 import { ResearchTree } from './ResearchTree';
 import { CurrencyHUD } from './CurrencyHUD';
 import { MinionPanel } from './MinionPanel';
-import { PlayerStatsPanel } from './PlayerStatsPanel';
+import { InventoryPanel } from './LootPicker';
+import { StatsPanel } from './StatsPanel';
 import { getNetworkCapacity, buildTriageQueue, getTriageAlerts } from '../game/SimulationMulti';
 import { getComboMultiplier } from '../game/objectives';
 import type { GameState, TriageTab } from '../game/State';
@@ -34,8 +35,9 @@ interface Props {
 
 const TABS: { id: TriageTab; label: string }[] = [
   { id: 'command', label: 'Command' },
-  { id: 'database', label: 'Triage DB' },
-  { id: 'minions', label: 'Minions' },
+  { id: 'database', label: 'Patients' },
+  { id: 'minions', label: 'Family & Minions' },
+  { id: 'inventory', label: 'Loot' },
   { id: 'research', label: 'Research' },
 ];
 
@@ -51,7 +53,7 @@ export function TriageDashboard({
   onTogglePause,
   onSetSpeed,
   onOptimize,
-  onAssignHelper: _onAssignHelper,
+  onAssignHelper,
   onBulkAssign,
   onBulkEndure,
   onBulkPriority,
@@ -62,8 +64,13 @@ export function TriageDashboard({
 }: Props) {
   const alerts = getTriageAlerts(state);
   const queue = buildTriageQueue(state.patients);
+  const selectedPatients = state.patients.filter((p) => state.selectedPatientIds.includes(p.id));
+  const availableHelpers = state.participants.filter((p) => p.active && p.le > 15);
   const network = getNetworkCapacity(state);
   const comboMult = getComboMultiplier(state.combo, Date.now(), state.activeUpgrades.comboDurationBonus);
+
+  const family = state.participants.filter((p) => !p.id.startsWith('minion-'));
+  const minions = state.participants.filter((p) => p.id.startsWith('minion-'));
 
   const dbProps = {
     patients: state.patients,
@@ -111,7 +118,7 @@ export function TriageDashboard({
           ))}
         </div>
         <div className="network-capacity-bar">
-          Minions: {network.allocated}/{network.total} deployed
+          Network: {network.allocated}/{network.total} carriers allocated
           <div className="capacity-fill" style={{ width: `${network.total ? (network.allocated / network.total) * 100 : 0}%` }} />
         </div>
         <div className="triage-controls">
@@ -144,8 +151,8 @@ export function TriageDashboard({
           <div className="triage-split">
             <PatientDatabase {...dbProps} />
             <div className="triage-right">
-              <PlayerStatsPanel state={state} />
               <TriageQueue queue={queue} onSelect={(id) => { onSelectPatient(id, false); onOpenDrawer(id); }} />
+              <StatsPanel stats={state.playerStats} directorRank={state.directorRank} dalysSaved={state.dalysSaved} />
             </div>
           </div>
         )}
@@ -153,10 +160,45 @@ export function TriageDashboard({
         {state.triageTab === 'minions' && (
           <div className="triage-split">
             <PatientDatabase {...dbProps} />
-            <MinionPanel
-              minions={state.participants.filter((p) => p.id.startsWith('minion-'))}
-              family={state.participants.filter((p) => !p.id.startsWith('minion-'))}
-            />
+            <div className="triage-right">
+              <MinionPanel minions={minions} family={family} />
+              <div className="network-assign-panel glass-panel">
+                <div className="panel-label">Quick Assign</div>
+                {selectedPatients.length === 0 ? (
+                  <p className="network-hint">Select patient row(s) to assign carriers</p>
+                ) : (
+                  <>
+                    <p className="network-selected">{selectedPatients.length} patient(s) selected</p>
+                    <div className="helper-list">
+                      {availableHelpers.map((h) => (
+                        <button
+                          key={h.id}
+                          type="button"
+                          className="helper-assign-btn"
+                          onClick={() => {
+                            for (const p of selectedPatients) {
+                              onAssignHelper(p.id, h.id, p.painLoad > 55 ? 'inflammatory' : 'systemic');
+                            }
+                          }}
+                        >
+                          <span className="member-avatar" style={{ background: h.color, width: 32, height: 32, fontSize: '0.75rem' }}>
+                            {h.initial}
+                          </span>
+                          {h.name.split(' ')[0]} · LE {h.le.toFixed(0)}%
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {state.triageTab === 'inventory' && (
+          <div className="triage-split">
+            <InventoryPanel inventory={state.inventory} />
+            <StatsPanel stats={state.playerStats} directorRank={state.directorRank} dalysSaved={state.dalysSaved} />
           </div>
         )}
 
