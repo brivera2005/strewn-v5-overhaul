@@ -1,3 +1,5 @@
+import type { WorldState } from '../burden/world';
+
 export type Screen =
   | 'menu'
   | 'playing'
@@ -7,7 +9,17 @@ export type Screen =
   | 'gameover'
   | 'victory'
   | 'shop'
-  | 'settings';
+  | 'settings'
+  | 'codex';
+
+export type PainType = 'grief' | 'rage' | 'dread' | 'hollow';
+
+export interface PainPool {
+  grief: number;
+  rage: number;
+  dread: number;
+  hollow: number;
+}
 
 export type CharmId =
   | 'shard'
@@ -18,12 +30,35 @@ export type CharmId =
   | 'void'
   | 'relay'
   | 'sponge'
+  | 'lash'
+  | 'veil'
+  | 'null_charm'
+  | 'pulse'
+  | 'prism'
+  | 'chain'
   | 'burning_anchor'
   | 'spite_web'
   | 'void_conduit'
   | 'ember_relay'
   | 'grief_catalyst'
-  | 'burden_storm';
+  | 'burden_storm'
+  | 'wrath_storm'
+  | 'void_maw'
+  | 'dread_lash'
+  | 'hollow_veil'
+  | 'rage_prism'
+  | 'grief_pulse'
+  | 'chain_relay'
+  | 'null_anchor'
+  | 'spite_chain'
+  | 'ember_lash'
+  | 'void_veil'
+  | 'prism_storm'
+  | 'pulse_catalyst'
+  | 'thorn_null'
+  | 'relay_prism'
+  | 'sponge_veil'
+  | 'shard_chain';
 
 export interface CharmDef {
   id: CharmId;
@@ -32,6 +67,7 @@ export interface CharmDef {
   color: string;
   tier: 'base' | 'fused';
   maxLevel: number;
+  painAffinity?: PainType;
 }
 
 export interface ActiveCharm {
@@ -46,6 +82,7 @@ export interface MetaUpgrades {
   shardBonus: number;
   minionSlots: number;
   startCharm: CharmId | null;
+  biomeUnlock: number;
 }
 
 export interface MetaSave {
@@ -57,11 +94,14 @@ export interface MetaSave {
   discoveredMelds: CharmId[];
   upgrades: MetaUpgrades;
   settings: GameSettings;
+  tutorialComplete: boolean;
+  loreUnlocked: string[];
 }
 
 export interface GameSettings {
   musicVolume: number;
   muted: boolean;
+  crtScanlines: boolean;
 }
 
 export interface RunStats {
@@ -73,6 +113,9 @@ export interface RunStats {
   shardsEarned: number;
   damageTaken: number;
   burdenOverflows: number;
+  shrinesFound: number;
+  structuresBuilt: number;
+  painRouted: number;
 }
 
 export interface Vec2 {
@@ -90,8 +133,10 @@ export interface Enemy {
   damage: number;
   burdenEmit: number;
   type: 'wretch' | 'howler' | 'anchor' | 'boss';
+  painType: PainType;
   hitFlash: number;
   size: number;
+  spawnTelegraph: number;
 }
 
 export interface Projectile {
@@ -137,6 +182,7 @@ export interface Particle {
   maxLife: number;
   color: string;
   size: number;
+  sprite?: boolean;
 }
 
 export interface FloatingText {
@@ -146,12 +192,28 @@ export interface FloatingText {
   text: string;
   life: number;
   color: string;
+  scale?: number;
+}
+
+export type StructureType = 'pain_relay' | 'sink_tower' | 'fuse_shrine';
+
+export interface Structure {
+  id: number;
+  type: StructureType;
+  x: number;
+  y: number;
+  hp: number;
+  maxHp: number;
+  active: boolean;
+  fuseUsed: boolean;
 }
 
 export interface ArenaState {
   player: {
     x: number;
     y: number;
+    vx: number;
+    vy: number;
     hp: number;
     maxHp: number;
     speed: number;
@@ -159,11 +221,18 @@ export interface ArenaState {
     xp: number;
     xpToNext: number;
     invuln: number;
+    facing: number;
   };
   burden: {
     current: number;
     max: number;
+    pain: PainPool;
+    overflowPulse: number;
   };
+  world: WorldState;
+  structures: Structure[];
+  buildMode: boolean;
+  buildIndex: number;
   enemies: Enemy[];
   projectiles: Projectile[];
   pickups: Pickup[];
@@ -186,8 +255,15 @@ export interface ArenaState {
   damageTaken: number;
   burdenOverflows: number;
   meldsFound: number;
+  shrinesFound: number;
+  structuresBuilt: number;
+  painRouted: number;
   pendingLevelUp: boolean;
   levelUpChoices: CharmId[];
   dead: boolean;
   won: boolean;
+  tutorialStep: string | null;
+  tutorialSeen: Set<string>;
+  wrathStormCd: number;
+  firstWaveSlow: boolean;
 }

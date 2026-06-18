@@ -3,12 +3,22 @@ import { musicEngine } from '../../game/MusicEngine';
 interface Props {
   musicVolume: number;
   muted: boolean;
+  crtScanlines: boolean;
   onSetVolume: (v: number) => void;
   onToggleMute: () => void;
+  onToggleCrt: () => void;
   onBack: () => void;
 }
 
-export function ArenaSettings({ musicVolume, muted, onSetVolume, onToggleMute, onBack }: Props) {
+export function ArenaSettings({
+  musicVolume,
+  muted,
+  crtScanlines,
+  onSetVolume,
+  onToggleMute,
+  onToggleCrt,
+  onBack,
+}: Props) {
   return (
     <div className="screen settings-screen">
       <div className="modal settings-modal">
@@ -26,6 +36,9 @@ export function ArenaSettings({ musicVolume, muted, onSetVolume, onToggleMute, o
         </label>
         <button type="button" className="btn-secondary" onClick={onToggleMute}>
           {muted ? 'UNMUTE' : 'MUTE'}
+        </button>
+        <button type="button" className="btn-secondary" onClick={onToggleCrt}>
+          CRT SCANLINES: {crtScanlines ? 'ON' : 'OFF'}
         </button>
         <button
           type="button"

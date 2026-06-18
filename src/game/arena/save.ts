@@ -9,11 +9,13 @@ export const DEFAULT_UPGRADES: MetaUpgrades = {
   shardBonus: 0,
   minionSlots: 0,
   startCharm: null,
+  biomeUnlock: 0,
 };
 
 export const DEFAULT_SETTINGS: GameSettings = {
   musicVolume: 0.4,
   muted: false,
+  crtScanlines: false,
 };
 
 export function createDefaultMeta(): MetaSave {
@@ -26,6 +28,8 @@ export function createDefaultMeta(): MetaSave {
     discoveredMelds: [],
     upgrades: { ...DEFAULT_UPGRADES },
     settings: { ...DEFAULT_SETTINGS },
+    tutorialComplete: false,
+    loreUnlocked: [],
   };
 }
 
@@ -40,6 +44,8 @@ export function loadMeta(): MetaSave {
       ...data,
       upgrades: { ...DEFAULT_UPGRADES, ...data.upgrades },
       settings: { ...DEFAULT_SETTINGS, ...data.settings },
+      tutorialComplete: data.tutorialComplete ?? false,
+      loreUnlocked: data.loreUnlocked ?? [],
     };
   } catch {
     return createDefaultMeta();

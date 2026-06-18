@@ -344,13 +344,21 @@ class MusicEngineImpl {
     }
   }
 
-  playSfx(type: 'ui_click' | 'assign' | 'tick' | 'level_up' | 'research_unlock' | 'relief') {
+  playSfx(type: 'ui_click' | 'assign' | 'tick' | 'level_up' | 'research_unlock' | 'relief' | 'hit' | 'overflow' | 'meld') {
     this.init();
     if (!this.ctx || !this.sfxGain || this.muted) return;
     const t = this.ctx.currentTime;
     const dest = this.sfxGain;
     if (type === 'ui_click') this.playNote(78, 'square', t, 0.05, 0.05, dest);
-    else if (type === 'assign') {
+    else if (type === 'hit') {
+      this.playNote(82, 'square', t, 0.04, 0.06, dest);
+      this.playNote(76, 'triangle', t + 0.03, 0.06, 0.04, dest);
+    } else if (type === 'overflow') {
+      this.playNote(48, 'sawtooth', t, 0.15, 0.07, dest);
+      this.playNote(44, 'sawtooth', t + 0.08, 0.2, 0.06, dest);
+    } else if (type === 'meld') {
+      [60, 64, 67, 72, 76, 79].forEach((n, i) => this.playNote(n, 'triangle', t + i * 0.08, 0.2, 0.06 - i * 0.008, dest));
+    } else if (type === 'assign') {
       this.playNote(72, 'square', t, 0.07, 0.06, dest);
       this.playNote(76, 'square', t + 0.06, 0.09, 0.05, dest);
       this.playNote(79, 'square', t + 0.12, 0.11, 0.04, dest);

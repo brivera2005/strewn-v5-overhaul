@@ -7,3 +7,5 @@ src-tauri/target/
 Thumbs.db
 .env
 .env.*
+public/assets/kenney-temp/
+public/assets/*.zip

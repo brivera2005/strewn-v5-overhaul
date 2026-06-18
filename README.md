@@ -1,8 +1,8 @@
 # Burden Surge
 
-**Absorb suffering. Route the weight. Fuse charms. Survive the storm.**
+**The world shattered. You hold the shared pain. Route it, fuse it, or overflow and break.**
 
-A snappy arena roguelite built on one idea: pain is a shared resource pool. Enemies bleed burden into you. Overflow hurts. Skill means routing that weight to minions, relics, and fused abilities.
+A Steam-quality arena roguelite built on one radical idea: **suffering is a shared resource pool with depth, color, and discovery.** Enemies bleed typed pain into you. Overflow hurts. Mastery means routing weight to minions, structures, and fused charms — while the arena grows beneath your feet.
 
 Double-click to play. No terminal, no browser tab.
 
@@ -10,47 +10,70 @@ Double-click to play. No terminal, no browser tab.
 
 ## Play
 
-**Double-click `release\Strewn.exe`** after building, or run `npm run electron:dev`.
+**Double-click `release\Strewn.exe`** (or desktop **Strewn.lnk**) after building.
+
+```bash
+npm run electron:dev    # dev with hot reload
+npm run electron:build  # portable exe → release/Strewn.exe
+```
 
 ---
 
-## Core loop
+## Story
 
-1. **SURGE NOW** drops you into a top-down arena survivor run (15 min or until you shatter the final Grief Anchor).
-2. **Enemies emit suffering** into your Burden meter as they live and die.
-3. **Overflow damages you** when burden exceeds capacity. Charms, minions, and melds expand or redirect the pool.
-4. **Level up** mid-run and pick Burden Charms (auto-attacks, drains, capacity, auras).
-5. **Meld Altar** appears periodically: slot two charms (keys 1/2), press E to fuse into a stronger hybrid (Balatro-style discovery).
-6. **Die or win**, earn Shards, spend them in the Meta Shop, then hit **ONE MORE RUN**.
+The world shattered into fragments. Every wound echoes across the ruins — **grief, rage, dread, and hollow silence**. You are a **Surge-bearer**: the only one who can hold the shared pain long enough to fuse it into power. Route the weight. Meld the suffering. Deploy minions as sinks. Build relays mid-run. Or overflow and break.
 
 ---
 
-## Burden mechanic
+## Core Loop
 
-| Concept | Behavior |
-|---------|----------|
-| Burden Pool | Shared meter; fills from enemy proximity, deaths, and ambient suffering |
-| Overflow | When full, you take escalating damage and thorns/novas may trigger |
-| Minions | SPACE deploys a burden sink (costs burden); orbits you and absorbs share |
-| Charms | Passive/active tools that manipulate the pool (drain, route, weaponize) |
-| Grief Anchors | Boss waves every 5 waves; massive burden burst on death |
+1. **SURGE NOW** — interactive tutorial guides your first run (skippable).
+2. **Enemies emit typed suffering** into your layered Burden Pool.
+3. **Overflow damages you** when capacity is exceeded — weaponize it with charms.
+4. **Level up** and pick Burden Charms (14 base types).
+5. **Meld Altar** appears periodically — fuse charms into **22 discoverable hybrids** (Balatro-style "NEW RECIPE!" popup).
+6. **Expand the arena** each wave; discover shrines for rewards.
+7. **Build structures** mid-run (relays, sink towers, fuse shrines).
+8. **Earn Meta Shards**, unlock upgrades, read the **Codex** (C key).
 
 ---
 
-## Meld system
+## Unique Systems
 
-Eight base charms can fuse into six hybrids at the Meld Altar:
+### Burden Ecology
+Pain has **four types** that layer in your meter:
+| Type | Color | Source |
+|------|-------|--------|
+| Grief | Blue | Wretches |
+| Rage | Red | Howlers |
+| Dread | Purple | Anchors |
+| Hollow | Gray | Boss Grief Anchors |
 
+**Synergies:** Grief + Rage → **Wrath Storm** nova. Dread + Hollow → **Miasma** enemy slow. Pain layers show in the HUD burden bar.
+
+### World Chunks
+Arena **expands each wave** — procedural Kenney dungeon tiles replace walls. Every 4 waves, a **discoverable shrine** appears (capacity, heal, or shards).
+
+### Crafting Tree (22 Melds)
+Eight original + fourteen new fusions. Silhouettes in Codex until discovered. Examples:
 | Recipe | Result |
 |--------|--------|
-| Ember + Anchor | Burning Anchor (capacity + fire nova on overflow) |
-| Conduit + Thorns | Spite Web (minion burden share + thorns) |
-| Void + Conduit | Void Conduit (minions fire void bolts from held pain) |
-| Ember + Relay | Ember Relay (kill relief becomes burn splash) |
-| Sponge + Anchor | Grief Catalyst (passive drain + heal on pickup) |
-| Shard + Ember | Burden Storm (twin orbital pain bolts) |
+| Pulse + Lash | Wrath Storm |
+| Veil + Null | Void Maw |
+| Prism + Shard | Prism Storm |
+| Ember + Anchor | Burning Anchor |
 
-Discovered melds appear in the Meta Shop and can roll on future level-ups.
+Full list in-game via **Codex (C)**.
+
+### Burden Architecture
+| Key | Structure | Effect |
+|-----|-----------|--------|
+| B | Toggle build mode | — |
+| TAB | Cycle structure | Pain Relay / Sink Tower / Fuse Shrine |
+| F | Place | Costs burden; persists for the run |
+
+### Meta Layer
+Shards unlock: max HP, burden cap, speed, shard bonus, minion slots, starting charm, biomes.
 
 ---
 
@@ -58,41 +81,60 @@ Discovered melds appear in the Meta Shop and can roll on future level-ups.
 
 | Input | Action |
 |-------|--------|
-| WASD / Arrows | Move |
+| WASD / Arrows | Move (acceleration + friction) |
 | SPACE | Deploy minion (burden sink) |
 | 1 / 2 | Slot charm for meld |
 | E | Fuse at Meld Altar |
+| B / TAB / F | Build mode / cycle / place structure |
+| C | Burden Codex |
 | ESC | Pause |
-| Mouse | (future) optional aim override |
 
 ---
 
-## Meta progression
+## Tutorial Flow
 
-- **Shards** from kills, waves, melds, and run performance
-- **Meta Shop**: max HP, burden capacity, move speed, shard bonus, extra minion slots, starting charm (one-time)
+1. **The Weight Returns** — movement + burden concept
+2. **Pain Has Color** — four pain types (at 50% burden)
+3. **Death Releases Pain** — first kill burst
+4. **Share the Load** — minion deploy
+5. **Meld Altar** — fusion discovery
+
+Skip anytime. Codex remains available forever.
 
 ---
 
-## Build
+## Visual & Audio
 
-| Command | Output |
-|---------|--------|
-| `npm run build` | Frontend to `dist/` |
-| `npm run electron:build` | Portable exe to `release/Strewn.exe` |
-| `npm run electron:dev` | Dev window with hot reload |
+- **Kenney Tiny Dungeon** tilemap + character sprite sheets (CC0)
+- Animated walk cycles, telegraphed enemy spawns, layered pain meter
+- Screen shake, hit-stop, damage numbers, particle bursts
+- Glowing overflow warning pulse
+- Dark moody palette + neon pain colors
+- CRT scanlines (optional, off by default)
+- Procedural chiptune with combat/menu/boss crossfade
+
+---
+
+## Assets Bundled
+
+```
+public/assets/
+  tiles/tilemap_packed.png          # Kenney Tiny Dungeon tilemap
+  kenney/tinydungeon/Tiles/         # 132 dungeon tiles
+  sprites/player.png                # Adventurer sheet
+  sprites/enemy_*.png               # Ghost, bat, spike, redeye sheets
+  sprites/minion.png                # Slime sheet
+  sprites/xp_gem.png                # Gold coin sheet
+  sprites/shard.png                 # Gem pickup
+```
+
+Attribution: [Kenney.nl](https://kenney.nl) (CC0 1.0)
 
 ---
 
 ## Tech
 
-React + TypeScript + Vite + Electron. Canvas arena loop in `src/game/arena/`. Procedural pixel rendering + Web Audio chiptune (`MusicEngine.ts`). Fonts: Press Start 2P, Pixelify Sans (Google Fonts).
-
----
-
-## Assets
-
-Procedural canvas art (CC0-style pixel aesthetic). Audio: procedural chiptune engine. Kenney/OpenGameArt bundles attempted; procedural fallback used where downloads were unavailable.
+React + TypeScript + Vite + Electron. Canvas game loop in `src/components/arena/BurdenArena.tsx`. Game logic in `src/game/burden/` + `src/game/arena/`. Web Audio chiptune (`MusicEngine.ts`).
 
 ---
 

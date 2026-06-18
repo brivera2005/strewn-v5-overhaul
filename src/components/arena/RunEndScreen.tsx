@@ -27,6 +27,9 @@ export function RunEndScreen({ won, stats, onRetry, onMenu, onShop }: Props) {
           <div><span>Waves</span><strong>{stats.wavesCleared}</strong></div>
           <div><span>Levels</span><strong>{stats.levelsGained}</strong></div>
           <div><span>Melds</span><strong>{stats.meldsFound}</strong></div>
+          <div><span>Shrines</span><strong>{stats.shrinesFound}</strong></div>
+          <div><span>Built</span><strong>{stats.structuresBuilt}</strong></div>
+          <div><span>Pain Routed</span><strong>{stats.painRouted}</strong></div>
           <div><span>Overflows</span><strong>{stats.burdenOverflows}</strong></div>
           <div className="shard-stat"><span>Shards Earned</span><strong>+{stats.shardsEarned}</strong></div>
         </div>

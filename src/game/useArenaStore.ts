@@ -3,15 +3,21 @@ import {
   applyLevelUpChoice,
   collectRunShards,
   createArenaState,
+  cycleBuildMode,
+  cycleBuildType,
   deployMinion,
+  dismissTutorial,
   getRunStats,
+  placeStructure,
   setMeldSlot,
+  skipAllTutorial,
   tryMeld,
   updateArena,
 } from './arena/engine';
 import { discoverMeld, loadMeta, saveMeta } from './arena/save';
 import type { CharmId, MetaSave, RunStats, Screen } from './arena/types';
 import { musicEngine } from './MusicEngine';
+import { STRUCTURE_CYCLE, STRUCTURE_DEFS } from './burden/structures';
 
 export function useArenaStore() {
   const [meta, setMeta] = useState<MetaSave>(() => loadMeta());
@@ -44,6 +50,9 @@ export function useArenaStore() {
 
   const endRun = useCallback((won: boolean) => {
     const state = arenaRef.current;
+    if (!metaRef.current.tutorialComplete && state.tutorialSeen.size >= 3) {
+      persistMeta({ ...metaRef.current, tutorialComplete: true });
+    }
     const stats = getRunStats(state, metaRef.current.upgrades.shardBonus);
     const shards = collectRunShards(state, metaRef.current);
     const nextMeta: MetaSave = {
@@ -82,7 +91,6 @@ export function useArenaStore() {
     }
 
     setHudTick((t) => t + 1);
-
     rafRef.current = requestAnimationFrame(tick);
   }, [screen, endRun]);
 
@@ -98,35 +106,53 @@ export function useArenaStore() {
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       keysRef.current.add(k);
+      const state = arenaRef.current;
 
       if (screen === 'playing') {
         if (k === 'escape') {
           setScreen('paused');
           musicEngine.crossfadeTo('title_theme', 0.5);
         }
+        if (k === 'c') {
+          setScreen('codex');
+          musicEngine.playSfx('ui_click');
+        }
         if (k === ' ') {
           e.preventDefault();
-          if (deployMinion(arenaRef.current, metaRef.current)) {
-            musicEngine.playSfx('assign');
-          }
+          if (deployMinion(state, metaRef.current)) musicEngine.playSfx('assign');
         }
-        if (k === 'e' && arenaRef.current.altarActive) {
-          const result = tryMeld(arenaRef.current);
+        if (k === 'b') {
+          cycleBuildMode(state);
+          musicEngine.playSfx('ui_click');
+        }
+        if (k === 'f' && state.buildMode) {
+          if (placeStructure(state, metaRef.current)) musicEngine.playSfx('research_unlock');
+        }
+        if (k === 'tab' && state.buildMode) {
+          e.preventDefault();
+          cycleBuildType(state);
+          musicEngine.playSfx('tick');
+        }
+        if (k === 'e' && state.altarActive) {
+          const result = tryMeld(state);
           if (result) {
             const next = discoverMeld(metaRef.current, result);
             persistMeta(next);
             setLastMeld(result);
-            musicEngine.playSfx('research_unlock');
+            musicEngine.playSfx('meld');
           }
         }
         if (k === '1' || k === '2') {
           const slot = k === '1' ? 0 : 1;
-          const charms = arenaRef.current.charms;
-          if (charms.length > slot) {
-            setMeldSlot(arenaRef.current, slot as 0 | 1, charms[slot].id);
+          if (state.charms.length > slot) {
+            setMeldSlot(state, slot as 0 | 1, state.charms[slot].id);
             musicEngine.playSfx('ui_click');
           }
         }
+      }
+
+      if (screen === 'codex' && k === 'c') {
+        setScreen('playing');
       }
     };
     const up = (e: KeyboardEvent) => keysRef.current.delete(e.key.toLowerCase());
@@ -143,6 +169,19 @@ export function useArenaStore() {
     setScreen('playing');
     musicEngine.playSfx('relief');
   }, []);
+
+  const dismissTutorialStep = useCallback(() => {
+    dismissTutorial(arenaRef.current);
+    setHudTick((t) => t + 1);
+  }, []);
+
+  const skipTutorial = useCallback(() => {
+    skipAllTutorial(arenaRef.current);
+    persistMeta({ ...metaRef.current, tutorialComplete: true });
+    setHudTick((t) => t + 1);
+  }, [persistMeta]);
+
+  const dismissMeldPopup = useCallback(() => setLastMeld(null), []);
 
   const openShop = useCallback(() => {
     setScreen('shop');
@@ -163,6 +202,8 @@ export function useArenaStore() {
     setScreen('playing');
     musicEngine.crossfadeTo('gameplay_ambient');
   }, []);
+
+  const closeCodex = useCallback(() => setScreen('playing'), []);
 
   const buyUpgrade = useCallback((id: keyof MetaSave['upgrades'], cost: number) => {
     if (meta.shards < cost) return;
@@ -197,11 +238,21 @@ export function useArenaStore() {
     persistMeta({ ...meta, settings: { ...meta.settings, muted } });
   }, [meta, persistMeta]);
 
+  const toggleCrt = useCallback(() => {
+    persistMeta({
+      ...meta,
+      settings: { ...meta.settings, crtScanlines: !meta.settings.crtScanlines },
+    });
+  }, [meta, persistMeta]);
+
   useEffect(() => {
     musicEngine.setMusicVolume(meta.settings.musicVolume);
     musicEngine.setMuted(meta.settings.muted);
     if (screen === 'menu') musicEngine.crossfadeTo('title_theme');
   }, []);
+
+  const buildType = STRUCTURE_CYCLE[arenaRef.current.buildIndex % STRUCTURE_CYCLE.length];
+  const buildDef = STRUCTURE_DEFS[buildType];
 
   return {
     meta,
@@ -216,11 +267,17 @@ export function useArenaStore() {
     openSettings,
     backToMenu,
     resume,
+    closeCodex,
     buyUpgrade,
     buyStartCharm,
     setMusicVolume,
     toggleMute,
+    toggleCrt,
     persistMeta,
     hudTick,
+    dismissTutorialStep,
+    skipTutorial,
+    dismissMeldPopup,
+    buildDef,
   };
 }
