@@ -1,5 +1,7 @@
 /** Kenney sprite atlas loader for Strewn */
 
+import { assetUrl } from '../../assetUrl';
+
 export const TILE_SIZE = 16;
 
 export interface SpriteAtlas {
@@ -32,15 +34,15 @@ export function loadAssets(): Promise<SpriteAtlas> {
   if (loadPromise) return loadPromise;
 
   loadPromise = Promise.all([
-    loadImage('/assets/tiles/tilemap_packed.png'),
-    loadImage('/assets/sprites/player.png'),
-    loadImage('/assets/sprites/enemy_wretch.png'),
-    loadImage('/assets/sprites/enemy_howler.png'),
-    loadImage('/assets/sprites/enemy_anchor.png'),
-    loadImage('/assets/sprites/enemy_boss.png'),
-    loadImage('/assets/sprites/pain_orb.png'),
-    loadImage('/assets/sprites/remnant.png'),
-    loadImage('/assets/sprites/sink_node.png'),
+    loadImage(assetUrl('assets/tiles/tilemap_packed.png')),
+    loadImage(assetUrl('assets/sprites/player.png')),
+    loadImage(assetUrl('assets/sprites/enemy_wretch.png')),
+    loadImage(assetUrl('assets/sprites/enemy_howler.png')),
+    loadImage(assetUrl('assets/sprites/enemy_anchor.png')),
+    loadImage(assetUrl('assets/sprites/enemy_boss.png')),
+    loadImage(assetUrl('assets/sprites/pain_orb.png')),
+    loadImage(assetUrl('assets/sprites/remnant.png')),
+    loadImage(assetUrl('assets/sprites/sink_node.png')),
   ]).then(([tilemap, player, enemyWretch, enemyHowler, enemyAnchor, enemyBoss, painOrb, remnant, sinkNode]) => {
     atlas = {
       tilemap,
