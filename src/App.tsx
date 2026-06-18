@@ -25,6 +25,7 @@ export default function App() {
     buyStartCharm,
     setMusicVolume,
     toggleMute,
+    hudTick,
   } = store;
 
   const arena = arenaRef.current;
@@ -46,7 +47,7 @@ export default function App() {
       {playing && (
         <>
           <ArenaCanvas arenaRef={arenaRef} active={screen === 'playing'} />
-          <GameHUD arenaRef={arenaRef} tick={arena?.time ?? 0} />
+          <GameHUD arenaRef={arenaRef} tick={hudTick} />
         </>
       )}
 

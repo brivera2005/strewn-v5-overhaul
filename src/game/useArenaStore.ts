@@ -18,6 +18,7 @@ export function useArenaStore() {
   const [screen, setScreen] = useState<Screen>('menu');
   const [runStats, setRunStats] = useState<RunStats | null>(null);
   const [lastMeld, setLastMeld] = useState<CharmId | null>(null);
+  const [hudTick, setHudTick] = useState(0);
 
   const arenaRef = useRef(createArenaState(meta));
   const keysRef = useRef(new Set<string>());
@@ -79,6 +80,8 @@ export function useArenaStore() {
       endRun(true);
       return;
     }
+
+    setHudTick((t) => t + 1);
 
     rafRef.current = requestAnimationFrame(tick);
   }, [screen, endRun]);
@@ -218,5 +221,6 @@ export function useArenaStore() {
     setMusicVolume,
     toggleMute,
     persistMeta,
+    hudTick,
   };
 }
